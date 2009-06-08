@@ -4,11 +4,11 @@ from distutils.core import setup
 
 setup(name='django-currencies',
 	version='0.1',
-	description='Adds support for multiple currencies as Django application',
+	description='Adds support for multiple currencies as a Django application',
 	author='Panos Laganakos',
 	author_email='panos.laganakos@gmail.com',
 	url='http://code.google.com/p/django-currencies/',
-	classifiers=['Development Status :: 5 - Production/Stable',
+	classifiers=['Development Status :: 4 - Beta',
 		'Environment :: Web Environment',
 		'Framework :: Django',
 		'Intended Audience :: Developers',

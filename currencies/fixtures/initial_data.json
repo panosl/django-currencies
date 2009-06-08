@@ -1,0 +1,14 @@
+[
+    {
+        "pk": 1, 
+        "model": "currencies.currency", 
+        "fields": {
+            "code": "EUR", 
+            "name": "Euro", 
+            "symbol": "\u20ac", 
+            "is_active": true, 
+            "is_default": true, 
+            "factor": "1"
+        }
+    }
+]

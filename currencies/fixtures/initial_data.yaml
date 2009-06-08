@@ -1,3 +1,0 @@
-- fields: {code: "EUR", name: "Euro", symbol: "€", factor: "1.00", is_active: True, is_default: True}
-  model: currencies.Currency
-  pk: '1'
