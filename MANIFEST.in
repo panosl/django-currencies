@@ -1,6 +1,5 @@
 include *.txt
 include MANIFEST.in
-exclude currencies/fabfile.py
 recursive-include docs *
 recursive-include currencies/locale *
 recursive-include currencies/fixtures *
