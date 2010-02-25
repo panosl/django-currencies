@@ -21,10 +21,10 @@ class ChangeCurrencyNode(template.Node):
 			currency = resolve_variable(self.new_currency, context)
 			try:
 				factor = Currency.objects.get(code__exact=currency).factor
-			except DoesNotExist:
+			except Currency.DoesNotExist:
 				# if the currency does not exist, avoid breaking the page
 				# just give the same price.
-				factor = 1.0
+				factor = '1.0'
 
 			new_price = price * factor
 

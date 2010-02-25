@@ -26,7 +26,7 @@ for dirpath, dirnames, filenames in os.walk('currencies'):
 
 
 setup(name='django-currencies',
-	version='0.1',
+	version='0.2',
 	description='Adds support for multiple currencies as a Django application',
 	author='Panos Laganakos',
 	author_email='panos.laganakos@gmail.com',
