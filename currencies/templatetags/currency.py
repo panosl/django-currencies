@@ -24,7 +24,7 @@ class ChangeCurrencyNode(template.Node):
 			except Currency.DoesNotExist:
 				# if the currency does not exist, avoid breaking the page
 				# just give the same price.
-				factor = '1.0'
+				factor = Decimal('1.0')
 
 			new_price = price * factor
 
