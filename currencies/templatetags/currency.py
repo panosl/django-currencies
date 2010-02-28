@@ -1,34 +1,38 @@
 from decimal import *
+from django.conf import settings
 from django import template
-from django.template import resolve_variable
+from django.template.defaultfilters import stringfilter
 from currencies.models import Currency
 
 
 register = template.Library()
 
+def _calculate_price(price, currency):
+	try:
+		factor = Currency.objects.get(code__exact=currency).factor
+	except Currency.DoesNotExist:
+		if settings.DEBUG:
+			raise Currency.DoesNotExist
+		else:
+			factor = Decimal('0.0')
+	new_price = Decimal(price) * factor
+	return new_price.quantize(Decimal('.01'), rounding=ROUND_UP)
+
+
 @register.filter(name='currency')
+@stringfilter
 def set_currency(value, arg):
-	return Currency.objects.get(code__exact=arg).factor * value
+	return _calculate_price(value, arg)
 
 class ChangeCurrencyNode(template.Node):
-	def __init__(self, current_price, new_currency):
-		self.current_price = current_price
-		self.new_currency = new_currency
+	def __init__(self, price, currency):
+		self.price = template.Variable(price)
+		self.currency = template.Variable(currency)
 
 	def render(self, context):
 		try:
-			price = resolve_variable(self.current_price, context)
-			currency = resolve_variable(self.new_currency, context)
-			try:
-				factor = Currency.objects.get(code__exact=currency).factor
-			except Currency.DoesNotExist:
-				# if the currency does not exist, avoid breaking the page
-				# just give the same price.
-				factor = '1.0'
-
-			new_price = price * factor
-
-			return str(new_price.quantize(Decimal('.01'), rounding=ROUND_UP))
+			return _calculate_price(self.price.resolve(context),
+				self.currency.resolve(context))
 		except template.VariableDoesNotExist:
 			return ''
 
