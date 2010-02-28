@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from distutils.core import setup
 import os
+from currencies import __version__
 
 
 # Compile the list of packages available, because distutils doesn't have
@@ -26,7 +27,7 @@ for dirpath, dirnames, filenames in os.walk('currencies'):
 
 
 setup(name='django-currencies',
-	version='0.2',
+	version=__version__,
 	description='Adds support for multiple currencies as a Django application',
 	author='Panos Laganakos',
 	author_email='panos.laganakos@gmail.com',
