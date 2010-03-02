@@ -4,8 +4,8 @@ from django import template
 from django.template.defaultfilters import stringfilter
 from currencies.models import Currency
 
-
 register = template.Library()
+
 
 def _calculate_price(price, currency):
 	try:
@@ -24,7 +24,9 @@ def _calculate_price(price, currency):
 def set_currency(value, arg):
 	return _calculate_price(value, arg)
 
+
 class ChangeCurrencyNode(template.Node):
+
 	def __init__(self, price, currency):
 		self.price = template.Variable(price)
 		self.currency = template.Variable(currency)
@@ -36,10 +38,12 @@ class ChangeCurrencyNode(template.Node):
 		except template.VariableDoesNotExist:
 			return ''
 
+
 @register.tag(name='change_currency')
 def change_currency(parser, token):
 	try:
 		tag_name, current_price, new_currency = token.split_contents()
 	except ValueError:
-		raise template.TemplateSyntaxError, '%r tag requires exactly two arguments' % token.contents.split()[0]
+		raise template.TemplateSyntaxError, \
+			'%r tag requires exactly two arguments' % token.contents.split()[0]
 	return ChangeCurrencyNode(current_price, new_currency)

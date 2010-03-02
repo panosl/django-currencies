@@ -16,7 +16,8 @@ def set_currency(request):
 	response = HttpResponseRedirect(next)
 	if currency_code:
 		if hasattr(request, 'session'):
-			request.session['currency'] = Currency.objects.get(code__exact=currency_code)
+			request.session['currency'] = \
+				Currency.objects.get(code__exact=currency_code)
 		else:
 			response.set_cookie('currency', currency_code)
 	return response
