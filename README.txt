@@ -1,13 +1,62 @@
-=================
-Django Currencies
-=================
+Introduction
+------------
+
+django-currencies allows you to define different currencies, and includes
+template tags/filters to allow easy conversion between them.
+Usage
+
+Once you have everything set up (read the included INSTALL.txt and
+docs/), you will be able to use the following code in your templates::
+
+   {% change_currency [price] [currency_code] %}
+
+   # i.e:
+
+   {% change_currency product.price "USD" %}
+
+   # or if we have the currencies.context_processors.currencies
+   # available:
+
+   {% change_currency product.price CURRENCY.code %}
+
+or use the filter::
+
+   {{ [price]|currency:[currency] }}
+
+   # i.e.:
+
+   {{ product.price|currency:"USD" }}
+
+or set the CURRENCY context variable with a POST to the included view::
+
+    {% url currencies_set_currency [currency] %}
 
 
-Django currencies, is an app that allows you to define multiple
-currencies, and gives you the tools to convert from one another. It
-requires a functional installation of Django 1.0 or newer, but has
-no other dependencies.
+Source Code
+-----------
 
-For installation instructions, see the file "INSTALL.txt" in this
-directory; for instructions on how to use this application, and on
-what it provides, see the documentation in the "docs/" directory.
+The source is kept under bazaar revision at https://launchpad.net/django-currencies
+
+You can get it by branching or checking it out::
+
+    bzr branch lp:~panosl/django-currencies/trunk
+
+    # or
+
+    bzr co lp:~panosl/django-currencies/trunk 
+
+
+Documentation
+-------------
+
+You can browse it online here: http://packages.python.org/django-currencies/
+
+
+Running Tests
+-------------
+
+I'm using nose along with nosedjango
+
+The settings.py is inside the tests/ directory, so you'll need to cd to it, and::
+
+    nosetests -v --with-django
