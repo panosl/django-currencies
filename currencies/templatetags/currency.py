@@ -1,28 +1,15 @@
-from decimal import *
-from django.conf import settings
 from django import template
 from django.template.defaultfilters import stringfilter
 from currencies.models import Currency
+from currencies.utils import calculate_price
 
 register = template.Library()
-
-
-def _calculate_price(price, currency):
-	try:
-		factor = Currency.objects.get(code__exact=currency).factor
-	except Currency.DoesNotExist:
-		if settings.DEBUG:
-			raise Currency.DoesNotExist
-		else:
-			factor = Decimal('0.0')
-	new_price = Decimal(price) * factor
-	return new_price.quantize(Decimal('.01'), rounding=ROUND_UP)
 
 
 @register.filter(name='currency')
 @stringfilter
 def set_currency(value, arg):
-	return _calculate_price(value, arg)
+	return calculate_price(value, arg)
 
 
 class ChangeCurrencyNode(template.Node):
@@ -33,7 +20,7 @@ class ChangeCurrencyNode(template.Node):
 
 	def render(self, context):
 		try:
-			return _calculate_price(self.price.resolve(context),
+			return calculate_price(self.price.resolve(context),
 				self.currency.resolve(context))
 		except template.VariableDoesNotExist:
 			return ''
