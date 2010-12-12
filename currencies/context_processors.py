@@ -10,6 +10,6 @@ def currencies(request):
 
 	return {
 		'CURRENCIES': currencies,
-		'currency': request.session['currency'], # DEPRECATED
+		'currency': request.session['currency'],  # DEPRECATED
 		'CURRENCY': request.session['currency']
 	}
