@@ -21,7 +21,7 @@ for dirpath, dirnames, filenames in os.walk('currencies'):
 			pkg = pkg.replace(os.path.altsep, '.')
 		packages.append(pkg)
 	elif filenames:
-		prefix = dirpath[13:] # Strip "currencies/" or "currencies\"
+		prefix = dirpath[11:] # Strip "currencies/" or "currencies\"
 		for f in filenames:
 			data_files.append(os.path.join(prefix, f))
 
