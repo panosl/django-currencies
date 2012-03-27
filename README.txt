@@ -49,7 +49,7 @@ You can get it by branching or checking it out::
 Documentation
 -------------
 
-You can browse it online here: http://packages.python.org/django-currencies/
+You can browse it online here: http://readthedocs.org/projects/django-currencies/
 
 
 Running Tests
