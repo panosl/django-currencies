@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 class Currency(models.Model):
     code = models.CharField(_('code'), max_length=3)
-    name = models.CharField(_('name'), max_length=25)
+    name = models.CharField(_('name'), max_length=35)
     symbol = models.CharField(_('symbol'), max_length=1)
     factor = models.DecimalField(_('factor'), max_digits=10, decimal_places=4,
         help_text=_('Specifies the difference of the currency to default one.'))
