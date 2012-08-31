@@ -3,7 +3,6 @@ from currencies.models import Currency
 
 
 class CurrencyAdmin(admin.ModelAdmin):
-    list_display = ('is_default', 'code', 'name', 'symbol', 'factor')
-    list_display_links = ('name',)
+    list_display = ("name", "is_default", "code", "symbol", "factor")
 
 admin.site.register(Currency, CurrencyAdmin)
