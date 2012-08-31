@@ -21,12 +21,7 @@ class Currency(models.Model):
         return self.code
 
     def save(self, **kwargs):
+        # Make sure the default currency is unique
         if self.is_default:
-            try:
-                default_currency = Currency.objects.get(is_default=True)
-            except DoesNotExist:
-                pass
-            else:
-                default_currency.is_default = False
-                default_currency.save()
+            Currency.objects.filter(is_default=True).update(is_default=False)
         super(Currency, self).save(**kwargs)
