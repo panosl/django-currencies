@@ -8,7 +8,7 @@ def calculate_price(price, currency):
         factor = Currency.objects.get(code__exact=currency).factor
     except Currency.DoesNotExist:
         if settings.DEBUG:
-            raise Currency.DoesNotExist
+            raise
         else:
             factor = Decimal('0.0')
     new_price = Decimal(price) * factor
