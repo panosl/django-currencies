@@ -35,15 +35,11 @@ or set the CURRENCY context variable with a POST to the included view::
 Source Code
 -----------
 
-The source is kept under bazaar revision at https://launchpad.net/django-currencies
+The source is kept under bazaar revision at https://github.com/panosl/django-currencies
 
-You can get it by branching or checking it out::
+You can get it by cloning the repository::
 
-    bzr branch lp:~panosl/django-currencies/trunk
-
-    # or
-
-    bzr co lp:~panosl/django-currencies/trunk 
+    git://github.com/panosl/django-currencies.git
 
 
 Documentation
