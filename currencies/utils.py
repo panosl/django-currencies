@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_UP
 from django.conf import settings
 from currencies.models import Currency
 
