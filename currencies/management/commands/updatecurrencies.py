@@ -37,7 +37,7 @@ class Command(NoArgsCommand):
 
 		for currency in Currency.objects.all():
 			if currency.code not in d["rates"]:
-				print("Could not find rates for %s (%s)" % (currency, currency.code))
+				print("Warning: Could not find rates for %s (%s)" % (currency, currency.code))
 				continue
 
 			rate = Decimal(d["rates"][currency.code]).quantize(Decimal(".0001"))
