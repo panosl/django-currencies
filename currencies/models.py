@@ -10,8 +10,10 @@ class Currency(models.Model):
         help_text=_('Specifies the difference of the currency to default one.'))
     is_active = models.BooleanField(_('active'), default=True,
         help_text=_('The currency will be available.'))
+    is_base = models.BooleanField(_('base'), default=False,
+        help_text=_('Make this the base currency against which rates are calculated.'))
     is_default = models.BooleanField(_('default'), default=False,
-        help_text=_('Make this the default currency.'))
+        help_text=_('Make this the default user currency.'))
 
     class Meta:
         verbose_name = _('currency')
@@ -21,7 +23,9 @@ class Currency(models.Model):
         return self.code
 
     def save(self, **kwargs):
-        # Make sure the default currency is unique
+        # Make sure the base and default currencies are unique
+        if self.is_base:
+            Currency.objects.filter(is_base=True).update(is_base=False)
         if self.is_default:
             Currency.objects.filter(is_default=True).update(is_default=False)
         super(Currency, self).save(**kwargs)
