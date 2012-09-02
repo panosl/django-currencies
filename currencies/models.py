@@ -16,6 +16,7 @@ class Currency(models.Model):
         help_text=_('Make this the default user currency.'))
 
     class Meta:
+        ordering = ('name', )
         verbose_name = _('currency')
         verbose_name_plural = _('currencies')
 
