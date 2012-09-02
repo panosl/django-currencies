@@ -20,7 +20,7 @@ class Command(NoArgsCommand):
 		for currency in sorted(d.keys()):
 			if not Currency.objects.filter(code=currency):
 				print("Creating %r (%s)" % (d[currency], currency))
-				Currency(code=currency, name=d[currency], factor=1.0, active=False).save()
+				Currency(code=currency, name=d[currency], factor=1.0, is_active=False).save()
 
 		if i == 1:
 			print("%i new currency" % (i))
