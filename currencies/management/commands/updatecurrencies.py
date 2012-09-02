@@ -27,6 +27,12 @@ class Command(NoArgsCommand):
 
 		if "base" in d:
 			print("All currencies based against %s" % (d["base"]))
+			try:
+				base = Currency.objects.get(code=d["base"])
+				base.is_base = True
+				base.save()
+			except Currency.DoesNotExist:
+				print("Warning: Base currency %r does not exist! Rates will be erroneous without it." % (d["base"]))
 		i = 0
 
 		for currency in Currency.objects.all():
