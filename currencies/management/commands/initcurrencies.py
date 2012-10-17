@@ -21,6 +21,7 @@ class Command(NoArgsCommand):
 			if not Currency.objects.filter(code=currency):
 				print("Creating %r (%s)" % (d[currency], currency))
 				Currency(code=currency, name=d[currency], factor=1.0, is_active=False).save()
+				i+=1
 
 		if i == 1:
 			print("%i new currency" % (i))
