@@ -13,6 +13,10 @@ Or if you're using ``pip``::
 
     pip install django-currencies
 
+For install latest Git version use this command:
+
+    pip install -e git+git://github.com/Adys/django-currencies.git#egg=django-currencies
+
 Or if you'd prefer you can simply place the included ``currencies``
 directory somewhere on your Python path, or symlink to it from
 somewhere on your Python path; this is useful if you're working from a
