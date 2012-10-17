@@ -8,28 +8,41 @@ Usage
 Once you have everything set up (read the included INSTALL.txt and
 docs/), you will be able to use the following code in your templates::
 
-   {% change_currency [price] [currency_code] %}
+    {% change_currency [price] [currency_code] %}
 
    # i.e:
 
-   {% change_currency product.price "USD" %}
+    {% change_currency product.price "USD" %}
 
    # or if we have the currencies.context_processors.currencies
    # available:
 
-   {% change_currency product.price CURRENCY.code %}
+    {% change_currency product.price CURRENCY.code %}
 
 or use the filter::
 
-   {{ [price]|currency:[currency] }}
+    {{ [price]|currency:[currency] }}
 
    # i.e.:
 
-   {{ product.price|currency:"USD" }}
+    {{ product.price|currency:"USD" }}
 
 or set the CURRENCY context variable with a POST to the included view::
 
     {% url currencies_set_currency [currency] %}
+
+
+Helpers functions
+-----------------
+
+Convert multicurrency function
+
+Example of use:
+
+    from currencies.utils import convert
+    price=convert(100, "RUB", "UAH")
+
+Convert 100 Russian Rubles to Ukrainian Hryvnia (via base USD currency)
 
 
 OpenExchangeRates integration
