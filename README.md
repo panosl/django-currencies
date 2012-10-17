@@ -32,18 +32,31 @@ or set the CURRENCY context variable with a POST to the included view::
     {% url currencies_set_currency [currency] %}
 
 
+OpenExchangeRates integration
+-----------------------------
+
+django-currencies has builtin integration with openexchangerates.org.
+
+You will need to specify your API key in your settings file::
+
+    OPENEXCHANGERATES_APP_ID = "c2b2efcb306e075d9c2f2d0b614119ea"
+
+You will then be able to use the management commands "initcurrencies" and "updatecurrencies".
+The former will create any currency that exists on openexchangerates.org with a default
+factor of 1.0. It is completely optional and does not require an API key.
+
+The updatecurrencies management command will update all your currencies against the rates
+returned by openexchangerates.org. Any missing currency will be left untouched.
+
+
 Source Code
 -----------
 
-The source is kept under bazaar revision at https://launchpad.net/django-currencies
+The source is kept under git version control at https://github.com/panosl/django-currencies
 
-You can get it by branching or checking it out::
+You can get it by cloning the repository::
 
-    bzr branch lp:~panosl/django-currencies/trunk
-
-    # or
-
-    bzr co lp:~panosl/django-currencies/trunk 
+    git://github.com/panosl/django-currencies.git
 
 
 Documentation

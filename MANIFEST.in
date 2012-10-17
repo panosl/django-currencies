@@ -3,3 +3,4 @@ include MANIFEST.in
 recursive-include docs *
 recursive-include currencies/locale *
 recursive-include currencies/fixtures *
+recursive-include currencies/management *
