@@ -28,7 +28,7 @@ for dirpath, dirnames, filenames in os.walk('currencies'):
 setup(name='django-currencies',
     version=__version__,
     description='Adds support for multiple currencies as a Django application.',
-    long_description=open('README.txt').read(),
+    long_description=open('README.md').read(),
     author='Panos Laganakos',
     author_email='panos.laganakos@gmail.com',
     url='https://launchpad.net/django-currencies',

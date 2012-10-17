@@ -31,6 +31,6 @@ def change_currency(parser, token):
     try:
         tag_name, current_price, new_currency = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, \
-            '%r tag requires exactly two arguments' % token.contents.split()[0]
+        tag_name = token.contents.split()[0]
+        raise template.TemplateSyntaxError('%r tag requires exactly two arguments' % (tag_name))
     return ChangeCurrencyNode(current_price, new_currency)
