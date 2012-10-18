@@ -17,6 +17,8 @@ def calculate_price(price, currency):
 
     
 def convert(amount, from_, to):
+    if from_==to:
+      return amount
     amount = Decimal(amount)
     from_currency = Currency.objects.get(code__exact=from_)
     to_currency = Currency.objects.get(code__exact=to)
