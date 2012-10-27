@@ -1,5 +1,6 @@
 include *.txt
 include MANIFEST.in
+include README.md
 recursive-include docs *
 recursive-include currencies/locale *
 recursive-include currencies/fixtures *
