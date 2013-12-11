@@ -3,6 +3,8 @@ Introduction
 
 django-currencies allows you to define different currencies, and includes
 template tags/filters to allow easy conversion between them.
+With In-app cache with Guacamole https://github.com/stucchio/Guacamole
+
 Usage
 
 Once you have everything set up (read the included INSTALL.txt and
