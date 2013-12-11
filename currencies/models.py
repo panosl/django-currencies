@@ -14,7 +14,7 @@ class Currency(models.Model):
         help_text=_('Make this the base currency against which rates are calculated.'))
     is_default = models.BooleanField(_('default'), default=False,
         help_text=_('Make this the default user currency.'))
-    objects = InMemoryCachingManager()
+    objects = InMemoryCachingManager(lookup_fields=['code'])
 
     class Meta:
         ordering = ('name', )
