@@ -75,7 +75,7 @@ A form that could handle the currency switching could be defined like so::
             <select name="currency" onchange="$('#currency_switcher').submit()">
             {% for curr in CURRENCIES %}
                     <option value="{{ curr.code }}"
-                        {% ifequal curr.code currency.code %}selected="selected"{% endifequal %}>
+                        {% ifequal curr.code CURRENCY.code %}selected="selected"{% endifequal %}>
                                 {{ curr.symbol }} {{ curr.name }}
                     </option>
             {% endfor %}
