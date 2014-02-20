@@ -25,6 +25,8 @@ for dirpath, dirnames, filenames in os.walk('currencies'):
         for f in filenames:
             data_files.append(os.path.join(prefix, f))
 
+data_files.append("management/commands/currencies.json")
+
 setup(name='django-currencies',
     version=__version__,
     description='Adds support for multiple currencies as a Django application.',
