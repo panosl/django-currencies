@@ -48,6 +48,9 @@ factor of 1.0. It is completely optional and does not require an API key.
 The updatecurrencies management command will update all your currencies against the rates
 returned by openexchangerates.org. Any missing currency will be left untouched.
 
+The updatecurrencysymbols command will add the currency symbol (if missing) to each currency present. Make sure that
+your symbol and name columns are set to UTF-8.
+
 
 Source Code
 -----------
