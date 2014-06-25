@@ -43,7 +43,8 @@ You will need to specify your API key in your settings file::
 
 You will then be able to use the management commands "initcurrencies" and "updatecurrencies".
 The former will create any currency that exists on openexchangerates.org with a default
-factor of 1.0. It is completely optional and does not require an API key.
+factor of 1.0. It is completely optional and does not require an API key. A list of currency codes may be supplied to
+limit the currencies that will be initialised.
 
 The updatecurrencies management command will update all your currencies against the rates
 returned by openexchangerates.org. Any missing currency will be left untouched.
