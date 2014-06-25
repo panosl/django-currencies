@@ -5,7 +5,11 @@ def currencies(request):
     currencies = Currency.objects.all()
 
     if not request.session.get('currency'):
-        request.session['currency'] = Currency.objects.get(is_default__exact=True)
+        try:
+            currency = Currency.objects.get(is_default__exact=True)
+        except Currency.DoesNotExist:
+            currency = None
+        request.session['currency'] = currency
 
     return {
         'CURRENCIES': currencies,
