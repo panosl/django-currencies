@@ -89,7 +89,7 @@ A form that could handle the currency switching could be defined like so::
 Context Processors
 ==================
 
-Django currencies, provides a ``currencies.context_processors.currency``,
+Django currencies, provides a ``currencies.context_processors.currencies``,
 which gives you the following template variables::
 
     ``CURRENCIES``
