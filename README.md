@@ -3,6 +3,8 @@ Introduction
 
 django-currencies allows you to define different currencies, and includes
 template tags/filters to allow easy conversion between them.
+With In-app cache with Guacamole https://github.com/stucchio/Guacamole
+
 Usage
 
 Once you have everything set up (read the included INSTALL.txt and
@@ -30,6 +32,19 @@ or use the filter:
 or set the CURRENCY context variable with a POST to the included view:
 
     {% url currencies_set_currency [currency] %}
+
+
+Helpers functions
+-----------------
+
+Convert multicurrency function
+
+Example of use:
+
+    from currencies.utils import convert
+    price=convert(100, "RUB", "UAH")
+
+Convert 100 Russian Rubles to Ukrainian Hryvnia (via base USD currency)
 
 
 OpenExchangeRates integration

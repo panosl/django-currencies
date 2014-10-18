@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
+from guacamole import InMemoryCachingManager
 
 class Currency(models.Model):
     code = models.CharField(_('code'), max_length=3)
@@ -14,6 +14,7 @@ class Currency(models.Model):
         help_text=_('Make this the base currency against which rates are calculated.'))
     is_default = models.BooleanField(_('default'), default=False,
         help_text=_('Make this the default user currency.'))
+    objects = InMemoryCachingManager(lookup_fields=['code'])
 
     class Meta:
         ordering = ('name', )
