@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from . import utils
 
 
 class Currency(models.Model):
@@ -33,6 +32,7 @@ class Currency(models.Model):
         super(Currency, self).save(**kwargs)
 
     def to_base(self, price):
+        from . import utils
         return utils.price_to_base(price, self)
 
     @classmethod
