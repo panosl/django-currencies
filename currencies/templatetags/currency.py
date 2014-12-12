@@ -28,9 +28,25 @@ class ChangeCurrencyNode(template.Node):
 
 @register.tag(name='change_currency')
 def change_currency(parser, token):
-    try:
+    contents = token.split_contents()
+    show_symbols = False
+    if len(contents) == 3:
         tag_name, current_price, new_currency = token.split_contents()
-    except ValueError:
+    elif len(contents) == 4:
+        tag_name, current_price, new_currency, show_symbols = token.split_contents()
+    else:
         tag_name = token.contents.split()[0]
-        raise template.TemplateSyntaxError('%r tag requires exactly two arguments' % (tag_name))
-    return ChangeCurrencyNode(current_price, new_currency)
+        raise template.TemplateSyntaxError('%r tag requires at least two arguments' % (tag_name))
+
+    node_class = ChangeCurrencyNodeWithSymbol if show_symbols else ChangeCurrencyNode
+    return node_class(current_price, new_currency)
+
+
+class ChangeCurrencyNodeWithSymbol(ChangeCurrencyNode):
+    def render(self, context):
+        value = super(ChangeCurrencyNodeWithSymbol, self).render(context)
+        if value:
+            currency = Currency.objects.get(
+                code__exact=self.currency.resolve(context))
+            value = "%s%s %s" % (currency.pre_symbol, value, currency.symbol)
+        return value
