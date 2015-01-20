@@ -71,7 +71,8 @@ be set. ``urls.py``, includes the named url, so you can do::
 
 A form that could handle the currency switching could be defined like so::
 
-    <form id="currency_switcher" method="POST" action="{% url currencies_set_currency %}">
+    <form id="currency_switcher" method="POST" action="{% url "currencies_set_currency" %}">
+            {% csrf_token %}
             <select name="currency" onchange="$('#currency_switcher').submit()">
             {% for curr in CURRENCIES %}
                     <option value="{{ curr.code }}"
