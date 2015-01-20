@@ -7,7 +7,7 @@ About
 =====
 
 django-currencies allows you to define different currencies, and includes
-template tags/filters to allow easy conversion between them. 
+template tags/filters to allow easy conversion between them.
 
 Installation
 ============
@@ -49,7 +49,7 @@ need to do the following:
    ``TEMPLATE_CONTEXT_PROCESSORS`` setting of your Django project.
 
 3. Add this line to your site's root URLConf::
-   
+
    (r'^currencies/', include('currencies.urls')),
 
 4. Run the command ``python manage.py syncdb``.
@@ -93,7 +93,7 @@ Django currencies, provides a ``currencies.context_processors.currencies``,
 which gives you the following template variables::
 
     ``CURRENCIES``
-    A list of the available currencies.
+    A list of the active currencies.
 
     ``CURRENCY``
     The currently set currency

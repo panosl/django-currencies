@@ -2,7 +2,7 @@ from currencies.models import Currency
 
 
 def currencies(request):
-    currencies = Currency.objects.all()
+    currencies = Currency.objects.active()
 
     if not request.session.get('currency'):
         try:
