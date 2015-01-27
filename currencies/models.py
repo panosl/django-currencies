@@ -2,6 +2,11 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
+class CurrencyManager(models.Manager):
+    def active(self):
+        return self.get_query_set().filter(is_active=True)
+
+
 class Currency(models.Model):
     code = models.CharField(_('code'), max_length=3)
     name = models.CharField(_('name'), max_length=35)
@@ -14,6 +19,8 @@ class Currency(models.Model):
         help_text=_('Make this the base currency against which rates are calculated.'))
     is_default = models.BooleanField(_('default'), default=False,
         help_text=_('Make this the default user currency.'))
+
+    objects = CurrencyManager()
 
     class Meta:
         ordering = ('name', )
