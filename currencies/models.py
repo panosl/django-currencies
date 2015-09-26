@@ -12,7 +12,7 @@ class Currency(models.Model):
     name = models.CharField(_('name'), max_length=35)
     symbol = models.CharField(_('symbol'), max_length=4, blank=True)
 
-    factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10,
+    factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10, default=1.0,
         help_text=_('Specifies the difference of the currency to default one.'))
 
     is_active = models.BooleanField(_('active'), default=True,
