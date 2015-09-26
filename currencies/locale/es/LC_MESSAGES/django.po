@@ -7,55 +7,66 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-07 00:00+0300\n"
+"POT-Creation-Date: 2015-09-26 18:14+0600\n"
 "PO-Revision-Date: 2011-02-25 16:54+0100\n"
 "Last-Translator: Antonio Melé <antonio@antoniomele.es>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: models.py:6
+#: models.py:11
 msgid "code"
 msgstr "código"
 
-#: models.py:7
+#: models.py:12
 msgid "name"
 msgstr "nombre"
 
-#: models.py:8
+#: models.py:13
 msgid "symbol"
 msgstr "símbolo"
 
-#: models.py:9
+#: models.py:15
 msgid "factor"
 msgstr "factor"
 
-#: models.py:10
+#: models.py:16
 msgid "Specifies the difference of the currency to default one."
-msgstr "Especifica la diferencia de esta moneda respecto a la usada por defecto."
+msgstr ""
+"Especifica la diferencia de esta moneda respecto a la usada por defecto."
 
-#: models.py:11
+#: models.py:18
 msgid "active"
 msgstr "activo"
 
-#: models.py:12
+#: models.py:19
 msgid "The currency will be available."
 msgstr "La moneda va a estar activa."
 
-#: models.py:13
+#: models.py:20
+msgid "base"
+msgstr ""
+
+#: models.py:21
+msgid "Make this the base currency against which rates are calculated."
+msgstr ""
+
+#: models.py:22
 msgid "default"
 msgstr "por defecto"
 
-#: models.py:14
-msgid "Make this the default currency."
+#: models.py:23
+#, fuzzy
+#| msgid "Make this the default currency."
+msgid "Make this the default user currency."
 msgstr "Hacer que ésta sea la moneda por defecto."
 
-#: models.py:17
+#: models.py:30
 msgid "currency"
 msgstr "moneda"
 
-#: models.py:18
+#: models.py:31
 msgid "currencies"
 msgstr "monedas"
-
