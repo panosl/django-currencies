@@ -8,54 +8,66 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-07 00:00+0300\n"
+"POT-Creation-Date: 2015-09-26 18:14+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: models.py:6
+#: models.py:11
 msgid "code"
 msgstr "κώδικας"
 
-#: models.py:7
+#: models.py:12
 msgid "name"
 msgstr "όνομα"
 
-#: models.py:8
+#: models.py:13
 msgid "symbol"
 msgstr "σύμβολο"
 
-#: models.py:9
+#: models.py:15
 msgid "factor"
 msgstr "παράγοντας"
 
-#: models.py:10
+#: models.py:16
 msgid "Specifies the difference of the currency to default one."
-msgstr "Προσδιορίζει τη διαφόρα του νομίσματος ως προς το προεπιλεμένο (νόμισμα)."
+msgstr ""
+"Προσδιορίζει τη διαφόρα του νομίσματος ως προς το προεπιλεμένο (νόμισμα)."
 
-#: models.py:11
+#: models.py:18
 msgid "active"
 msgstr "ενεργό"
 
-#: models.py:12
+#: models.py:19
 msgid "The currency will be available."
 msgstr "Το νόμισμα θα είναι διαθέσιμο."
 
-#: models.py:13
+#: models.py:20
+msgid "base"
+msgstr ""
+
+#: models.py:21
+msgid "Make this the base currency against which rates are calculated."
+msgstr ""
+
+#: models.py:22
 msgid "default"
 msgstr "προεπιλεμένο"
 
-#: models.py:14
-msgid "Make this the default currency."
+#: models.py:23
+#, fuzzy
+#| msgid "Make this the default currency."
+msgid "Make this the default user currency."
 msgstr "Να γίνει αυτό το προεπιλεγμένο νόμισμα."
 
-#: models.py:17
+#: models.py:30
 msgid "currency"
 msgstr "νόμισμα"
 
-#: models.py:18
+#: models.py:31
 msgid "currencies"
 msgstr "νομίσματα"
