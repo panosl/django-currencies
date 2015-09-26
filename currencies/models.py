@@ -41,6 +41,10 @@ class Currency(models.Model):
         if self.is_default is True:
             self.__class__._default_manager.filter(is_default=True).update(is_default=False)
 
+        # Make sure default / base currency is active
+        if self.is_default or self.is_base:
+            self.is_active = True
+
         super(Currency, self).save(**kwargs)
 
     def to_base(self, price):
