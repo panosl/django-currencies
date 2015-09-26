@@ -1,53 +1,64 @@
-import json
-from datetime import datetime
-from decimal import Decimal
-from urllib2 import urlopen
+# -*- coding: utf-8 -*-
+
+from decimal import Decimal as D
+from datetime import datetime as d
+
 from django.conf import settings
+from django.core.management.base import NoArgsCommand
 from django.core.exceptions import ImproperlyConfigured
-from django.core.management.base import CommandError, NoArgsCommand
-from currencies.models import Currency
 
-OPENEXCHANGERATES_APP_ID = getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
-if not OPENEXCHANGERATES_APP_ID:
-	raise ImproperlyConfigured("You need to set the OPENEXCHANGERATES_APP_ID setting to your openexchangerates.org api key")
+from openexchangerates import OpenExchangeRatesClient
 
-CURRENCY_API_URL = "http://openexchangerates.org/latest.json?app_id=%s" % (OPENEXCHANGERATES_APP_ID)
+from ...models import Currency as C
+
+APP_ID = getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
+if APP_ID is None:
+    raise ImproperlyConfigured(
+        "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")
 
 
 class Command(NoArgsCommand):
-	help = "Update the currencies against the current exchange rates"
+    help = "Update the currencies against the current exchange rates"
 
-	def handle_noargs(self, **options):
-		print("Querying currencies at %s" % (CURRENCY_API_URL))
-		api = urlopen(CURRENCY_API_URL)
-		d = json.loads(api.read())
+    def handle(self, *args, **options):
+        self.verbose = int(options.get('verbosity', 0))
+        self.options = options
 
-		if "timestamp" in d:
-			print("Rates last updated on %s" % (datetime.fromtimestamp(d["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")))
+        client = OpenExchangeRatesClient(APP_ID)
+        if self.verbose >= 1:
+            self.stdout.write("Querying database at %s" % (client.ENDPOINT_CURRENCIES))
 
-		if "base" in d:
-			print("All currencies based against %s" % (d["base"]))
-			try:
-				base = Currency.objects.get(code=d["base"])
-				base.is_base = True
-				base.save()
-			except Currency.DoesNotExist:
-				print("Warning: Base currency %r does not exist! Rates will be erroneous without it." % (d["base"]))
-		i = 0
+        try:
+            code = C._default_manager.get(is_base=True).code
+        except C.DoesNotExist:
+            code = 'USD'  # fallback to default
 
-		for currency in Currency.objects.all():
-			if currency.code not in d["rates"]:
-				print("Warning: Could not find rates for %s (%s)" % (currency, currency.code))
-				continue
+        l = client.latest(base=code)
 
-			rate = Decimal(d["rates"][currency.code]).quantize(Decimal(".0001"))
-			if currency.factor != rate:
-				print("Updating %s rate to %f" % (currency, rate))
-				currency.factor = rate
-				currency.save()
-				i += 1
+        if self.verbose >= 1 and "timestamp" in l:
+            self.stdout.write("Rates last updated on %s" % (
+                d.fromtimestamp(l["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")))
 
-		if i == 1:
-			print("%i currency updated" % (i))
-		else:
-			print("%i currencies updated" % (i))
+        if "base" in l:
+            if self.verbose >= 1:
+                self.stdout.write("All currencies based against %s" % (l["base"]))
+
+            if not C._default_manager.filter(code=l["base"]):
+                self.stderr.write(
+                    "Base currency %r does not exist! Rates will be erroneous without it." % l["base"])
+            else:
+                base = C._default_manager.get(code=l["base"])
+                base.is_base = True
+                base.save()
+
+        for c in C._default_manager.all():
+            if c.code not in l["rates"]:
+                self.stderr.write("Could not find rates for %s (%s)" % (c, c.code))
+                continue
+
+            factor = D(l["rates"][c.code]).quantize(D(".0001"))
+            if c.factor != factor:
+                if self.verbose >= 1:
+                    self.stdout.write("Updating %s rate to %f" % (c, factor))
+
+                C._default_manager.filter(pk=c.pk).update(factor=factor)
