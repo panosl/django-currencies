@@ -66,7 +66,7 @@ You can get it by cloning the repository:
 Documentation
 -------------
 
-You can browse it online here: http://readthedocs.org/projects/django-currencies/
+You can browse it online here: http://django-currencies.readthedocs.org/en/latest/
 
 
 Running Tests
