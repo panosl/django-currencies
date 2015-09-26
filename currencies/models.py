@@ -46,11 +46,3 @@ class Currency(models.Model):
             self.is_active = True
 
         super(Currency, self).save(**kwargs)
-
-    def to_base(self, price):
-        from . import utils
-        return utils.price_to_base(price, self)
-
-    @classmethod
-    def price_to_base(cls, price, code):
-        return cls.objects.get(code__exact=code).to_base(price)

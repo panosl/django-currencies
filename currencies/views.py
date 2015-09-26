@@ -1,23 +1,27 @@
+# -*- coding: utf-8 -*-
+
+from django.utils.http import is_safe_url
 from django.http import HttpResponseRedirect
-from currencies.models import Currency
+from django.views.decorators.cache import never_cache
+
+from .models import Currency
+from .conf import SESSION_KEY
 
 
+@never_cache
 def set_currency(request):
-    if request.method == 'POST':
-        currency_code = request.POST.get('currency', None)
-        next = request.POST.get('next', None)
-    else:
-        currency_code = request.GET.get('currency', None)
-        next = request.GET.get('next', None)
-    if not next:
-        next = request.META.get('HTTP_REFERER', None)
-    if not next:
-        next = '/'
+    next, currency_code = (
+        request.REQUEST.get('next'), request.REQUEST.get('currency_code', None))
+
+    if not is_safe_url(url=next, host=request.get_host()):
+        next = request.META.get('HTTP_REFERER')
+        if not is_safe_url(url=next, host=request.get_host()):
+            next = '/'
+
     response = HttpResponseRedirect(next)
-    if currency_code:
+    if currency_code and Currency.active.filter(code=currency_code).exists():
         if hasattr(request, 'session'):
-            request.session['currency'] = \
-                Currency.objects.get(code__exact=currency_code)
+            request.session[SESSION_KEY] = currency_code
         else:
-            response.set_cookie('currency', currency_code)
+            response.set_cookie(SESSION_KEY, currency_code)
     return response
