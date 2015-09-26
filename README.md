@@ -32,25 +32,30 @@ or set the CURRENCY context variable with a POST to the included view:
     {% url currencies_set_currency [currency] %}
 
 
-OpenExchangeRates integration
------------------------------
+Configuration
+-------------
 
-django-currencies has builtin integration with openexchangerates.org.
+django-currencies has built-in integration with [Open Exchange Rates](http://openexchangerates.org/)
 
 You will need to specify your API key in your settings file:
 
-    OPENEXCHANGERATES_APP_ID = "c2b2efcb306e075d9c2f2d0b614119ea"
+```python
+OPENEXCHANGERATES_APP_ID = "c2b2efcb306e075d9c2f2d0b614119ea"
+```
 
-You will then be able to use the management commands "initcurrencies" and "updatecurrencies".
-The former will create any currency that exists on openexchangerates.org with a default
-factor of 1.0. It is completely optional and does not require an API key. A list of currency codes may be supplied to
-limit the currencies that will be initialised.
+You will then be able to use the management commands ``currencies``
+and ``updatecurrencies``. The former will import any currencies that
+are defined on [Open Exchange Rates](http://openexchangerates.org/).
+You can selectively import currencies, for example bellow command will
+import USD and EUR currencies only:
 
-The updatecurrencies management command will update all your currencies against the rates
-returned by openexchangerates.org. Any missing currency will be left untouched.
+```shell
+python ./manage.py currencies --import=USD --import=EUR
+```
 
-The updatecurrencysymbols command will add the currency symbol (if missing) to each currency present. Make sure that
-your symbol and name columns are set to UTF-8.
+The ``updatecurrencies`` management command will update all your
+currencies against the rates returned by [Open Exchange Rates](http://openexchangerates.org/).
+Any missing currency will be left untouched.
 
 
 Source Code
