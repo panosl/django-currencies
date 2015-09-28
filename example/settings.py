@@ -57,6 +57,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
 ] + PROJECT_APPS
 
+import django
+if django.VERSION < (1, 7):
+    INSTALLED_APPS += [
+        'south',
+    ]
+
 MIDDLEWARE_CLASSES = (
     # 'django.middleware.cache.UpdateCacheMiddleware',
     
