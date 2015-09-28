@@ -33,6 +33,7 @@ if not settings.configured:
             'django.contrib.sites',
 
             'currencies',
+            'currencies.tests',
         ),
         MIDDLEWARE_CLASSES = (
             'django.middleware.common.CommonMiddleware',
