@@ -6,6 +6,9 @@ includes template tags/filters to allow easy conversion between them.
 
 For more details, see the `documentation <http://readthedocs.org/projects/django-currencies/>`_ at Read The Docs.
 
+Authored by `Panos Laganakos <http://panoslaganakos.com/>`_, and some great
+`contributors <https://github.com/panosl/django-currencies/contributors>`_.
+
 Installation
 ------------
 
