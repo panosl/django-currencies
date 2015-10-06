@@ -12,30 +12,16 @@ from ..utils import get_currency_code, calculate
 register = template.Library()
 
 
-class CurrentCurrencyTag(Tag):
-    name = 'get_current_currency'
     options = Options(
         'as',
         Argument('varname', resolve=False, required=False),
     )
 
     def render_tag(self, context, varname):
-        code = get_currency_code(context['request'])
-        try:
-            currency = Currency.active.get(code=code)
-        except Currency.DoesNotExist:
-            try:
-                currency = Currency.active.default()
-            except Currency.DoesNotExist:
-                currency = None  # shit happens...
-
         if varname:
-            context[varname] = currency
             return ''
         else:
-            return currency
 
-register.tag(CurrentCurrencyTag)
 
 
 class ChangeCurrencyTag(Tag):
