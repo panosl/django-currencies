@@ -115,7 +115,7 @@ for example:
     {% change_currency product.price "USD" %}
 
     <!-- or if you have the ``currencies.context_processors.currencies`` available -->
-    {% change_currency product.price CURRENCY_CODE %}
+    {% change_currency product.price CURRENCY.code %}
 
 or use the filter:
 

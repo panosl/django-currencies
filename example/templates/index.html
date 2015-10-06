@@ -2,11 +2,11 @@
 <html>
     <head></head>
     <body>
-      {% if CURRENCY_CODE and CURRENCIES %}
+      {% if CURRENCY and CURRENCIES %}
       <form id="currency_switcher" method="POST" action="{% url 'currencies_set_currency' %}">{% csrf_token %}
         <select name="currency_code" onchange="document.getElementById('currency_switcher').submit()">
           {% for curr in CURRENCIES %}
-          <option value="{{ curr.code }}" {% ifequal curr.code CURRENCY_CODE %}selected="selected"{% endifequal %}>
+          <option value="{{ curr.code }}" {% ifequal curr.code CURRENCY.code %}selected="selected"{% endifequal %}>
             {{ curr.symbol }} {{ curr.name }}
           </option>
           {% endfor %}
@@ -16,6 +16,6 @@
         </noscript>
       </form>      
       {% endif %}
-      {{ 100|currency:"USD" }} USD is equal to {% change_currency 100 CURRENCY_CODE %} in {{ CURRENCY_CODE }}
+      {{ 100|currency:"USD" }} USD is equal to {% change_currency 100 CURRENCY.code %} in {{ CURRENCY.code }}
     </body>
 </html>

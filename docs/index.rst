@@ -87,7 +87,7 @@ A form that could handle the currency switching could be defined like so:
     <form id="currency_switcher" method="POST" action="{% url "currencies_set_currency" %}">{% csrf_token %}
       <select name="currency" onchange="$('#currency_switcher').submit()">
         {% for curr in CURRENCIES %}
-          <option value="{{ curr.code }}" {% ifequal curr.code CURRENCY_CODE %}selected="selected"{% endifequal %}>
+          <option value="{{ curr.code }}" {% ifequal curr.code CURRENCY.code %}selected="selected"{% endifequal %}>
             {{ curr.symbol }} {{ curr.name }}
           </option>
         {% endfor %}
@@ -108,8 +108,8 @@ which gives you the following template variables:
     # A list of the active currencies.
     CURRENCIES  
 
-    # The currently set currency code.
-    CURRENCY_CODE
+    # The currently set currency.
+    CURRENCY
 
 
 Template Tags and Filters
@@ -140,7 +140,7 @@ i.e:
     {% change_currency product.price "USD" %}
 
     <!-- or if you have the ``currencies.context_processors.currencies`` available -->
-    {% change_currency product.price CURRENCY_CODE %}
+    {% change_currency product.price CURRENCY.code %}
 
 
 Filter reference:
