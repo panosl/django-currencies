@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 class CurrencyManager(models.Manager):
     def active(self):
-        return self.get_query_set().filter(is_active=True)
+        return self.get_queryset().filter(is_active=True)
 
 
 class Currency(models.Model):
