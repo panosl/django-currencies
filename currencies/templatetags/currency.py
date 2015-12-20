@@ -6,35 +6,34 @@ from django.template.defaultfilters import stringfilter
 from classytags.core import Tag, Options
 from classytags.arguments import Argument
 
-from ..models import Currency
-from ..utils import get_currency_code, calculate
+from currencies.models import Currency
+from currencies.utils import get_currency_code, calculate
 
 register = template.Library()
 
 
-    options = Options(
-        'as',
-        Argument('varname', resolve=False, required=False),
-    )
+class ChangeCurrencyNode(template.Node):
 
-    def render_tag(self, context, varname):
-        if varname:
+    def __init__(self, price, currency):
+        self.price = template.Variable(price)
+        self.currency = template.Variable(currency)
+
+    def render(self, context):
+        try:
+            return calculate(self.price.resolve(context), self.currency.resolve(context))
+        except template.VariableDoesNotExist:
             return ''
-        else:
 
 
-
-class ChangeCurrencyTag(Tag):
-    name = 'change_currency'
-    options = Options(
-        Argument('price', resolve=True, required=True),
-        Argument('code', resolve=True, required=True),
-    )
-
-    def render_tag(self, context, price, code):
-        return calculate(price, code)
-
-register.tag(ChangeCurrencyTag)
+@register.tag(name='change_currency')
+def change_currency(parser, token):
+    try:
+        tag_name, current_price, new_currency = token.split_contents()
+    except ValueError:
+        tag_name = token.contents.split()[0]
+        raise template.TemplateSyntaxError(
+            """%r tag requires exactly two arguments""" % tag_name)
+    return ChangeCurrencyNode(current_price, new_currency)
 
 
 @stringfilter
