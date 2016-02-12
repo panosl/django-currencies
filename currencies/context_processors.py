@@ -13,7 +13,7 @@ def currencies(request):
     try:
         currency = Currency.active.get(
             code__iexact=request.session[SESSION_KEY])
-    except Currency.DoesNotExists:
+    except Currency.DoesNotExist:
         currency = None
 
     return {

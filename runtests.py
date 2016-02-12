@@ -23,7 +23,7 @@ if not settings.configured:
         TEMPLATE_LOADERS = (
             'django.template.loaders.app_directories.Loader',
         ),
-        TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
+        TEMPLATE_CONTEXT_PROCESSORS = tuple(global_settings.TEMPLATE_CONTEXT_PROCESSORS) + (
             'django.core.context_processors.request',
         ),
         INSTALLED_APPS = (

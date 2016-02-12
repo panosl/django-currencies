@@ -2,6 +2,6 @@
 
 from django.conf.urls import *
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^currencies/', include('currencies.urls')),
-)
+]
