@@ -3,9 +3,6 @@
 from django import template
 from django.template.defaultfilters import stringfilter
 
-from classytags.core import Tag, Options
-from classytags.arguments import Argument
-
 from currencies.models import Currency
 from currencies.utils import get_currency_code, calculate
 
