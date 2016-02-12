@@ -5,8 +5,8 @@ from django.db import models
 
 class CurrencyManager(models.Manager):
 
-    def get_query_set(self):
-        return super(CurrencyManager, self).get_query_set().filter(
+    def get_queryset(self):
+        return super(CurrencyManager, self).get_queryset().filter(
             is_active=True)
 
     def default(self):
