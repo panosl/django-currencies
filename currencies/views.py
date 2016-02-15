@@ -19,7 +19,8 @@ def set_currency(request):
             try:
                 currency = Currency.objects.get(code__iexact=currency_code)
             except Currency.DoesNotExist:
-                currency = currency_code
+                currency_code = None
+                currency = None
             request.session['currency'] = currency
         else:
             response.set_cookie('currency', currency_code)
