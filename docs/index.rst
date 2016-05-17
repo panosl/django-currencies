@@ -6,27 +6,33 @@
 About
 =====
 
-django-currencies allows you to define different currencies, and includes
-template tags/filters to allow easy conversion between them.
+``django-currencies`` allows you to define different currencies, and
+includes template tags/filters to allow easy conversion between them.
 
 Installation
 ============
 
 To install it, run the following command inside this directory:
 
+.. code-block:: shell
+
     python setup.py install
 
-If you have the Python ``easy_install`` utility available, you can
-also type the following to download and install in one step::
+if you have the Python ``easy_install`` utility available, you can
+also type the following to download and install in one step:
 
-   easy_install django-currencies
+.. code-block:: shell
 
-Or if you're using ``pip``::
+    easy_install django-currencies
+
+or if you're using ``pip``:
+
+.. code-block:: shell
 
     pip install django-currencies
 
-Or if you'd prefer you can simply place the included ``currencies``
-directory somewhere on your Python path, or symlink to it from
+or if you'd prefer you can simply place the included ``currencies``
+directory somewhere on your ``PYTHON_PATH``, or symlink to it from
 somewhere on your Python path; this is useful if you're working from a
 checkout.
 
@@ -34,7 +40,6 @@ Note that this application requires Python 2.3 or later, and a
 functional installation of Django 1.0 or newer. You can obtain Python
 from http://www.python.org/ and Django from
 http://www.djangoproject.com/.
-
 
 Set Up
 ======
@@ -48,63 +53,70 @@ need to do the following:
 2. Add ``currencies.context_processors.currencies`` in your
    ``TEMPLATE_CONTEXT_PROCESSORS`` setting of your Django project.
 
-3. Add this line to your site's root URLConf::
+3. Add this line to your site's root URLConf:
 
-   (r'^currencies/', include('currencies.urls')),
+   .. code-block:: python
 
-4. Run the command ``python manage.py syncdb``.
+       urlpatterns += patterns('',
+           url(r'^currencies/', include('currencies.urls')),
+       )
 
-The ``syncdb`` command creates the necessary database tables and
-creates permission objects for all installed apps that need them.
+4. Run the command ``./manage.py syncdb``.
+
+The ``syncdb`` command creates the necessary database tables and creates
+permission objects for all installed apps that need them.
 
 That's it!
-
 
 Views
 =====
 
-Django currencies, defines a ``set_currency`` view, in which you need
-to pass the new currency you want as a ``currency`` variable (as POST), and it will
-be set. ``urls.py``, includes the named url, so you can do::
+``django-currencies`` defines a ``set_currency`` view, in which you need
+to pass the new currency you want as a ``currency_code`` variable (as
+``POST``), and it will be set. ``urls.py``, includes the named url, so you
+can do:
 
-    {% url currencies_set_currency [currency] %}
+.. code-block:: html+django
 
-A form that could handle the currency switching could be defined like so::
+    {% url currencies_set_currency [currency_code] %}
 
-    <form id="currency_switcher" method="POST" action="{% url "currencies_set_currency" %}">
-            {% csrf_token %}
-            <select name="currency" onchange="$('#currency_switcher').submit()">
-            {% for curr in CURRENCIES %}
-                    <option value="{{ curr.code }}"
-                        {% ifequal curr.code CURRENCY.code %}selected="selected"{% endifequal %}>
-                                {{ curr.symbol }} {{ curr.name }}
-                    </option>
-            {% endfor %}
-            </select>
-            <noscript>
-                    <input type="submit" value="Set" />
-            </noscript>
+A form that could handle the currency switching could be defined like so:
+
+.. code-block:: html+django
+
+    <form id="currency_switcher" method="POST" action="{% url "currencies_set_currency" %}">{% csrf_token %}
+      <select name="currency" onchange="$('#currency_switcher').submit()">
+        {% for curr in CURRENCIES %}
+          <option value="{{ curr.code }}" {% ifequal curr.code CURRENCY.code %}selected="selected"{% endifequal %}>
+            {{ curr.symbol }} {{ curr.name }}
+          </option>
+        {% endfor %}
+      </select>
+      <noscript>
+        <input type="submit" value="Set" />
+      </noscript>
     </form>
-
 
 Context Processors
 ==================
 
-Django currencies, provides a ``currencies.context_processors.currencies``,
-which gives you the following template variables::
+``django-currencies`` provides a ``currencies.context_processors.currencies``,
+which gives you the following template variables:
 
-    ``CURRENCIES``
-    A list of the active currencies.
+.. code-block:: python
 
-    ``CURRENCY``
-    The currently set currency
+    # A list of the active currencies.
+    CURRENCIES  
+
+    # The currently set currency.
+    CURRENCY
 
 
 Template Tags and Filters
 =========================
 
-The ``currencies.templatetags.currency`` module defines a template
-tag and filter which may be used to work with currencies.
+The ``currencies.templatetags.currency`` module defines a template tag
+and filter which may be used to work with currencies.
 
 Tag reference
 -------------
@@ -115,18 +127,20 @@ change_currency
 Retrieves a list of ``Tag`` objects associated with a given model and
 stores them in a context variable.
 
-Usage::
+Usage:
 
-   {% change_currency [price] [currency_code] %}
+.. code-block:: html+django
 
-i.e::
+    {% change_currency [price] [currency_code] %}
 
-   {% change_currency product.price "USD" %}
+i.e:
 
-   # or if we have the currencies.context_processors.currencies
-   # available:
+.. code-block:: html+django
 
-   {% change_currency product.price CURRENCY.code %}
+    {% change_currency product.price "USD" %}
+
+    <!-- or if you have the ``currencies.context_processors.currencies`` available -->
+    {% change_currency product.price CURRENCY.code %}
 
 
 Filter reference:
@@ -135,10 +149,14 @@ Filter reference:
 currency
 ~~~~~~~~
 
-Usage::
+Usage:
 
-   {{ [price]|currency:[currency] }}
+.. code-block:: html+django
 
-i.e.::
+    {{ [price]|currency:[currency_code] }}
 
-   {{ product.price|currency:"USD" }}
+i.e.:
+
+.. code-block:: html+django
+
+    {{ product.price|currency:"USD" }}

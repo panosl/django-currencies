@@ -1,15 +1,12 @@
+# -*- coding: utf-8 -*-
+
 from django import template
 from django.template.defaultfilters import stringfilter
+
 from currencies.models import Currency
-from currencies.utils import calculate_price
+from currencies.utils import get_currency_code, calculate
 
 register = template.Library()
-
-
-@register.filter(name='currency')
-@stringfilter
-def set_currency(value, arg):
-    return calculate_price(value, arg)
 
 
 class ChangeCurrencyNode(template.Node):
@@ -20,8 +17,7 @@ class ChangeCurrencyNode(template.Node):
 
     def render(self, context):
         try:
-            return calculate_price(self.price.resolve(context),
-                self.currency.resolve(context))
+            return calculate(self.price.resolve(context), self.currency.resolve(context))
         except template.VariableDoesNotExist:
             return ''
 
@@ -32,5 +28,12 @@ def change_currency(parser, token):
         tag_name, current_price, new_currency = token.split_contents()
     except ValueError:
         tag_name = token.contents.split()[0]
-        raise template.TemplateSyntaxError('%r tag requires exactly two arguments' % (tag_name))
+        raise template.TemplateSyntaxError(
+            """%r tag requires exactly two arguments""" % tag_name)
     return ChangeCurrencyNode(current_price, new_currency)
+
+
+@stringfilter
+@register.filter(name='currency')
+def do_currency(price, code):
+    return calculate(price, code)

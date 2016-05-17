@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from django.contrib import admin
-from currencies.models import Currency
+
+from .models import Currency
 
 
 class CurrencyAdmin(admin.ModelAdmin):

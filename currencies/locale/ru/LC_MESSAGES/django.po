@@ -1,49 +1,51 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# Panos Laganakos <panos.laganakos@gmail.com>, 2009.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: django-easy-currencies\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-09-26 18:14+0600\n"
-"PO-Revision-Date: 2011-02-25 16:54+0100\n"
-"Last-Translator: Antonio Melé <antonio@antoniomele.es>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2015-03-31 11:01+0600\n"
+"Last-Translator: Basil Shubin <basil.shubin@gmail.com>\n"
+"Language-Team:  <ru@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 1.5.7\n"
 
 #: models.py:11
 msgid "code"
-msgstr "código"
+msgstr "код"
 
 #: models.py:12
 msgid "name"
-msgstr "nombre"
+msgstr "название"
 
 #: models.py:13
 msgid "symbol"
-msgstr "símbolo"
+msgstr "символ"
 
 #: models.py:15
 msgid "factor"
-msgstr "factor"
+msgstr ""
 
 #: models.py:16
 msgid "Specifies the difference of the currency to default one."
 msgstr ""
-"Especifica la diferencia de esta moneda respecto a la usada por defecto."
 
 #: models.py:18
 msgid "active"
-msgstr "activo"
+msgstr ""
 
 #: models.py:19
 msgid "The currency will be available."
-msgstr "La moneda va a estar activa."
+msgstr ""
 
 #: models.py:20
 msgid "base"
@@ -55,18 +57,16 @@ msgstr ""
 
 #: models.py:22
 msgid "default"
-msgstr "por defecto"
+msgstr "по-умолчанию"
 
 #: models.py:23
-#, fuzzy
-#| msgid "Make this the default currency."
 msgid "Make this the default user currency."
-msgstr "Hacer que ésta sea la moneda por defecto."
+msgstr ""
 
 #: models.py:30
 msgid "currency"
-msgstr "moneda"
+msgstr "валюта"
 
 #: models.py:31
 msgid "currencies"
-msgstr "monedas"
+msgstr "валюты"

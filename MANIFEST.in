@@ -1,7 +1,4 @@
-include *.txt
-include MANIFEST.in
-include README.md
-recursive-include docs *
+include LICENSE
+include README.rst
 recursive-include currencies/locale *
-recursive-include currencies/fixtures *
-recursive-include currencies/management *
+recursive-include currencies/management *.json
