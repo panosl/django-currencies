@@ -5,6 +5,9 @@ from decimal import Decimal as D, ROUND_UP
 from .models import Currency as C
 from .conf import SESSION_KEY
 
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+
 
 def calculate(price, code):
     to, default = C.active.get(code=code), C.active.default()
@@ -39,3 +42,10 @@ def get_currency_code(request):
         return C.active.default().code
     except C.DoesNotExist:
         return None  # shit happens...
+
+
+def get_open_exchange_rates_app_id():
+    APP_ID = getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
+    if APP_ID is None:
+        raise ImproperlyConfigured(
+            "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")

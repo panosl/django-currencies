@@ -10,11 +10,10 @@ from django.core.exceptions import ImproperlyConfigured
 from openexchangerates import OpenExchangeRatesClient
 
 from ...models import Currency as C
+from ...utils import get_open_exchange_rates_app_id
 
-APP_ID = getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
-if APP_ID is None:
-    raise ImproperlyConfigured(
-        "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")
+
+APP_ID = get_open_exchange_rates_app_id()
 
 
 class Command(NoArgsCommand):
