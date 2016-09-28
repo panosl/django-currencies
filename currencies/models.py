@@ -10,14 +10,9 @@ from .managers import CurrencyManager
 @python_2_unicode_compatible
 class Currency(models.Model):
 
-    code = models.CharField(_('code'), max_length=3,
-                            unique=True, db_index=True)
-    name = models.CharField(_('name'), max_length=35,
-                            unique=True, db_index=True)
-    symbol = models.CharField(_('symbol'), max_length=4, blank=True,
-                              db_index=True)
-    factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10, default=1.0,
-        help_text=_('Specifies the difference of the currency to default one.'))
+    code = models.CharField(_('code'), max_length=3, unique=True, db_index=True)
+    name = models.CharField(_('name'), max_length=35, unique=True, db_index=True)
+    symbol = models.CharField(_('symbol'), max_length=4, blank=True, db_index=True)
 
     is_active = models.BooleanField(_('active'), default=True,
         help_text=_('The currency will be available.'))
@@ -50,3 +45,11 @@ class Currency(models.Model):
             self.is_active = True
 
         super(Currency, self).save(**kwargs)
+
+
+class DailyCurrencyExchangeRate(models.Model):
+
+    currency = models.ForeignKey(Currency)
+    factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10, default=1.0,
+        help_text=_('Specifies the difference of the currency to default one.'))
+    date = models.DateField(db_index=True)
