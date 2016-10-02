@@ -49,3 +49,4 @@ def get_open_exchange_rates_app_id():
     if APP_ID is None:
         raise ImproperlyConfigured(
             "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")
+    return APP_ID
