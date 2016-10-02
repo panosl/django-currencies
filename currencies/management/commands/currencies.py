@@ -1,70 +1,93 @@
 # -*- coding: utf-8 -*-
-
 import os
 import json
-from optparse import make_option
-
-from django.conf import settings
+from collections import OrderedDict
+from importlib import import_module
 from django.core.management.base import BaseCommand
-from django.core.exceptions import ImproperlyConfigured
+from ...models import Currency
 
-from openexchangerates import OpenExchangeRatesClient
 
-from ...models import Currency as C
+# The list of available backend currency sources
+sources = OrderedDict([
+    # oxr must remain first for backward compatibility
+    ('oxr', '._openexchangerates'),
+    ('yahoo', '._yahoofinance'),
+    #('google', '._googlecalculator.py'),
+    #('ecb', '._europeancentralbank.py'),
+])
 
-APP_ID = getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
-if APP_ID is None:
-    raise ImproperlyConfigured(
-        "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")
+
+symbols = None
+def get_symbol(code):
+    """Retrieve the currency symbol from the local file"""
+    global symbols
+    if not symbols:
+        symbolpath = os.path.join(os.path.dirname(__file__), 'currencies.json')
+        with open(symbolpath) as df:
+            symbols = json.load(df)
+    return symbols.get(code)
 
 
 class Command(BaseCommand):
-    help = "Create all missing currencies defined on openexchangerates.org."
-    
-    file_path = os.path.join(os.path.dirname(__file__), 'currencies.json')
+    help = "Create all missing db currencies available from the chosen source"
 
-    option_list = BaseCommand.option_list + (
-        make_option('--force', '-f', action='store_true', default=False,
-            help='Import even if currencies are up-to-date.'
-        ),
-        make_option('--import', '-i', action='append', default=[],
-            help='Selectively import currencies (e.g. USD). Default is to process all. Can be used multiple times',
-        ),
-    )
+    _package_name = __loader__.name.rsplit('.', 1)[0]
+    _source_param = 'source'
+    _source_default = next(iter(sources))
+    _source_kwargs = {'action': 'store', 'nargs': '?', 'default': _source_default,
+                        'choices': sources.keys(),
+                        'help': 'Select the desired currency rate source, default is ' + _source_default}
+
+    def add_arguments(self, parser):
+        """Add command arguments"""
+        parser.add_argument(self._source_param, **self._source_kwargs)
+        parser.add_argument('--force', '-f', action='store_true', default=False,
+            help='Update database even if currency already exists')
+        parser.add_argument('--import', '-i', action='append', default=[],
+            help='Selectively import currencies (e.g. USD). Default imports all. Specify switch multiple times.')
+
+    def import_source(self, key):
+        """Retrieve the source functions"""
+        source = import_module(sources[key], self._package_name)
+        self.get_handle = source.get_handle
+        self.get_allcurrencycodes = source.get_allcurrencycodes
+        self.get_currencyname = source.get_currencyname
+        self.get_ratetimestamp = source.get_ratetimestamp
+        self.get_ratefactor = source.get_ratefactor
+        self.remove_cache = source.remove_cache
 
     def handle(self, *args, **options):
-        self.verbose = int(options.get('verbosity', 0))
-        self.options = options
+        """Handle the command"""
+        # get the command arguments
+        self.import_source(options[self._source_param])
+        verbose = int(options.get('verbosity', 0))
+        force = options['force']
+        imports = [e for e in options['import'] if e]
 
-        self.force = self.options['force']
+        # get a handle for the connection
+        handle, endpoint = self.get_handle(self.stdout.write, self.stderr.write)
+        if verbose >= 1:
+            self.stdout.write("Querying database at %s" % endpoint)
 
-        self.imports = [e for e in self.options['import'] if e]
+        # iterate through the available currency codes
+        for code in self.get_allcurrencycodes(handle):
+            if (not imports) or code in imports:
+                name = self.get_currencyname(handle, code)
+                if (not Currency._default_manager.filter(code=code)) or force is True:
+                    if verbose >= 1:
+                        self.stdout.write("Creating %r (%s)" % (name, code))
 
-        client = OpenExchangeRatesClient(APP_ID)
-        if self.verbose >= 1:
-            self.stdout.write("Querying database at %s" % (client.ENDPOINT_CURRENCIES))
+                    obj, created = Currency._default_manager.get_or_create(code=code)
+                    if created:
+                        Currency._default_manager.filter(pk=obj.pk).update(name=name, is_active=False)
 
-        symbols = {}
-        with open(self.file_path) as df:
-            symbols = json.load(df)
-
-        currencies = client.currencies()
-        for code in sorted(currencies.keys()):
-            if (not self.imports) or code in self.imports:
-                if not C._default_manager.filter(code=code) or self.force is True:
-                    if self.verbose >= 1:
-                        self.stdout.write("Creating %r (%s)" % (currencies[code], code))
-
-                    c, created = C._default_manager.get_or_create(code=code)
-                    if created is True:
-                        C._default_manager.filter(pk=c.pk).update(name=currencies[code], is_active=False)
-
-                    if bool(c.symbol) and self.force is False:
+                    if bool(obj.symbol) and force is False:
                         continue
 
-                    symbol = symbols.get(c.code)
-                    if symbol is not None:
-                        C._default_manager.filter(pk=c.pk).update(symbol=symbol)
+                    symbol = get_symbol(code)
+                    if symbol:
+                        Currency._default_manager.filter(pk=obj.pk).update(symbol=symbol)
                 else:
-                    if self.verbose >= 1:
-                        self.stdout.write("Skipping %r (%s)" % (currencies[code], code))
+                    if verbose >= 1:
+                        self.stdout.write("Skipping %r (%s)" % (name, code))
+        self.remove_cache()

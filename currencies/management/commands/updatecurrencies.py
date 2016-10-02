@@ -1,64 +1,91 @@
 # -*- coding: utf-8 -*-
-
-from decimal import Decimal as D
-from datetime import datetime as d
-
+from decimal import Decimal
 from django.conf import settings
-from django.core.management.base import NoArgsCommand
 from django.core.exceptions import ImproperlyConfigured
 
-from openexchangerates import OpenExchangeRatesClient
-
-from ...models import Currency as C
-
-APP_ID = getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
-if APP_ID is None:
-    raise ImproperlyConfigured(
-        "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")
+from .currencies import Command as CurrencyCommand
+from ...models import Currency
 
 
-class Command(NoArgsCommand):
-    help = "Update the currencies against the current exchange rates"
+class Command(CurrencyCommand):
+    help = "Update the db currencies with the live exchange rates"
+
+    def add_arguments(self, parser):
+        """Add command arguments"""
+        parser.add_argument(self._source_param, **self._source_kwargs)
+        parser.add_argument('--base', '-b', action='store',
+            help='Supply the base currency as code or settings variable name; default is taken from the db, otherwise USD')
+
+    def get_base(self, option):
+        """Parse the base command option. Can be supplied as a 3 character code or a settings variable name"""
+        if isinstance(option, str) and option.isupper():
+            if len(option) == 3:
+                return option, True
+            else:
+                return getattr(settings, option), True
+        else:
+            return 'USD', False
 
     def handle(self, *args, **options):
-        self.verbose = int(options.get('verbosity', 0))
-        self.options = options
+        """Handle the command"""
+        # get the command arguments
+        self.import_source(options[self._source_param])
+        verbose = int(options.get('verbosity', 0))
+        base, base_was_arg = self.get_base(options['base'])
 
-        client = OpenExchangeRatesClient(APP_ID)
-        if self.verbose >= 1:
-            self.stdout.write("Querying database at %s" % (client.ENDPOINT_CURRENCIES))
-
+        # See if the db already has a base currency
         try:
-            code = C._default_manager.get(is_base=True).code
-        except C.DoesNotExist:
-            code = 'USD'  # fallback to default
+            db_base_obj = Currency._default_manager.get(is_base=True)
+            db_base = db_base_obj.code
+        except Currency.DoesNotExist:
+            db_base = None
 
-        l = client.latest(base=code)
-
-        if self.verbose >= 1 and "timestamp" in l:
-            self.stdout.write("Rates last updated on %s" % (
-                d.fromtimestamp(l["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")))
-
-        if "base" in l:
-            if self.verbose >= 1:
-                self.stdout.write("All currencies based against %s" % (l["base"]))
-
-            if not C._default_manager.filter(code=l["base"]):
+        if db_base and not base_was_arg:
+            base = db_base
+            base_obj = db_base_obj
+            base_in_db = True
+        else:
+            # see if the argument base currency exists in the db
+            try:
+                base_in_db = True
+                base_obj = Currency._default_manager.get(code=base)
+            except Currency.DoesNotExist:
+                base_in_db = False
                 self.stderr.write(
-                    "Base currency %r does not exist! Rates will be erroneous without it." % l["base"])
-            else:
-                base = C._default_manager.get(code=l["base"])
-                base.is_base = True
-                base.save()
+                    "Base currency %r does not exist in the db! Rates will be erroneous without it." % base)
 
-        for c in C._default_manager.all():
-            if c.code not in l["rates"]:
-                self.stderr.write("Could not find rates for %s (%s)" % (c, c.code))
+        if db_base and base_was_arg and base_in_db and (db_base != base):
+            self.stderr.write("Changing db base currency from: %s to: %s" % (db_base, base))
+            db_base_obj.is_base = False
+            db_base_obj.save()
+            base_obj.is_base = True
+            base_obj.save()
+        elif (not db_base) and base_in_db:
+            base_obj.is_base = True
+            base_obj.save()
+
+        if verbose >= 1:
+            self.stdout.write("Using %s as base for all currencies" % base)
+
+        # get a handle for the connection
+        handle, endpoint = self.get_handle(self.stdout.write, self.stderr.write)
+        if verbose >= 1:
+            self.stdout.write("Querying database at %s" % endpoint)
+
+        timestamp = self.get_ratetimestamp(handle, base)
+        if verbose >= 1 and timestamp:
+            self.stdout.write("Rates last updated at %s" % timestamp)
+
+        for obj in Currency._default_manager.all():
+            rate = self.get_ratefactor(handle, base, obj.code)
+            if not rate:
+                self.stderr.write("Could not find rates for %s (%s)" % (obj.name, obj.code))
                 continue
 
-            factor = D(l["rates"][c.code]).quantize(D(".0001"))
-            if c.factor != factor:
-                if self.verbose >= 1:
-                    self.stdout.write("Updating %s rate to %f" % (c, factor))
+            factor = rate.quantize(Decimal(".0001"))
+            if obj.factor != factor:
+                if verbose >= 1:
+                    self.stdout.write("Updating %s rate to %f" % (obj, factor))
 
-                C._default_manager.filter(pk=c.pk).update(factor=factor)
+                Currency._default_manager.filter(pk=obj.pk).update(factor=factor)
+        self.remove_cache()
