@@ -72,10 +72,6 @@ class Command(CurrencyCommand):
         if verbose >= 1:
             self.stdout.write("Querying database at %s" % endpoint)
 
-        timestamp = self.get_ratetimestamp(handle, base)
-        if verbose >= 1 and timestamp:
-            self.stdout.write("Rates last updated at %s" % timestamp)
-
         for obj in Currency._default_manager.all():
             rate = self.get_ratefactor(handle, base, obj.code)
             if not rate:
@@ -85,7 +81,11 @@ class Command(CurrencyCommand):
             factor = rate.quantize(Decimal(".0001"))
             if obj.factor != factor:
                 if verbose >= 1:
-                    self.stdout.write("Updating %s rate to %f" % (obj, factor))
+                    update_str = ""
+                    timestamp = self.get_ratetimestamp(handle, base, obj.code)
+                    if timestamp:
+                        update_str = ", updated at %s" % timestamp
+                    self.stdout.write("Updating %s rate to %f%s" % (obj, factor, update_str))
 
                 Currency._default_manager.filter(pk=obj.pk).update(factor=factor)
         self.remove_cache()

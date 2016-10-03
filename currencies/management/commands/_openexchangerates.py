@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
-from decimal import Decimal, getcontext
+from decimal import Decimal
 from datetime import datetime
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -80,7 +80,7 @@ def get_latestcurrencyrates(handle, base):
             else:
                 raise
 
-def get_ratetimestamp(handle, base):
+def get_ratetimestamp(handle, base, code):
     """Return rate timestamp in datetime format"""
     get_latestcurrencyrates(handle, base)
     try:
