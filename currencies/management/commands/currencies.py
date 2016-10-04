@@ -3,6 +3,7 @@ import os
 import json
 from collections import OrderedDict
 from importlib import import_module
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from ...models import Currency
 
@@ -12,6 +13,7 @@ sources = OrderedDict([
     # oxr must remain first for backward compatibility
     ('oxr', '._openexchangerates'),
     ('yahoo', '._yahoofinance'),
+    #TODO:
     #('google', '._googlecalculator.py'),
     #('ecb', '._europeancentralbank.py'),
 ])
@@ -44,38 +46,49 @@ class Command(BaseCommand):
         parser.add_argument('--force', '-f', action='store_true', default=False,
             help='Update database even if currency already exists')
         parser.add_argument('--import', '-i', action='append', default=[],
-            help='Selectively import currencies (e.g. USD). Default imports all. Specify switch multiple times.')
+            help=(  'Selectively import currencies by supplying the currency codes (e.g. USD) one per switch '
+                    'or supply an uppercase settings variable name with an iterable (once only).'))
 
-    def import_source(self, key):
-        """Retrieve the source functions"""
-        source = import_module(sources[key], self._package_name)
-        self.get_handle = source.get_handle
-        self.get_allcurrencycodes = source.get_allcurrencycodes
-        self.get_currencyname = source.get_currencyname
-        self.get_ratetimestamp = source.get_ratetimestamp
-        self.get_ratefactor = source.get_ratefactor
-        self.remove_cache = source.remove_cache
+    def get_imports(self, option):
+        """See if we have been passed a set of currencies or a setting variable"""
+        if not option:
+            self.stderr.write("No imports found. Some currencies may be out-of-date (MTL) or spurious (XPD)")
+            return option
+        elif len(option) == 1 and option[0].isupper() and len(option[0]) != 3:
+            return getattr(settings, option[0])
+        else:
+            return [e for e in option if e]
+
+    verbose = 0
+    def info(self, msg):
+        """Only print if verbose >= 1"""
+        if self.verbose:
+            self.stdout.write(msg)
+
+    def get_handler(self, options):
+        """Return the specified handler"""
+        # Import the CurrencyHandler and get an instance
+        handler_module = import_module(sources[options[self._source_param]], self._package_name)
+        return handler_module.CurrencyHandler(self.info, self.stderr.write)
 
     def handle(self, *args, **options):
         """Handle the command"""
         # get the command arguments
-        self.import_source(options[self._source_param])
-        verbose = int(options.get('verbosity', 0))
+        self.verbose = int(options.get('verbosity', 0))
         force = options['force']
-        imports = [e for e in options['import'] if e]
+        imports = self.get_imports(options['import'])
 
-        # get a handle for the connection
-        handle, endpoint = self.get_handle(self.stdout.write, self.stderr.write)
-        if verbose >= 1:
-            self.stdout.write("Querying database at %s" % endpoint)
+        # Import the CurrencyHandler and get an instance
+        handler = self.get_handler(options)
+
+        self.info("Querying database at %s" % handler.endpoint)
 
         # iterate through the available currency codes
-        for code in self.get_allcurrencycodes(handle):
+        for code in handler.get_allcurrencycodes():
             if (not imports) or code in imports:
-                name = self.get_currencyname(handle, code)
+                name = handler.get_currencyname(code)
                 if (not Currency._default_manager.filter(code=code)) or force is True:
-                    if verbose >= 1:
-                        self.stdout.write("Creating %r (%s)" % (name, code))
+                    self.info("Creating %r (%s)" % (name, code))
 
                     obj, created = Currency._default_manager.get_or_create(code=code)
                     if created:
@@ -84,10 +97,8 @@ class Command(BaseCommand):
                     if bool(obj.symbol) and force is False:
                         continue
 
-                    symbol = get_symbol(code)
+                    symbol = handler.get_currencysymbol(code)
                     if symbol:
                         Currency._default_manager.filter(pk=obj.pk).update(symbol=symbol)
                 else:
-                    if verbose >= 1:
-                        self.stdout.write("Skipping %r (%s)" % (name, code))
-        self.remove_cache()
+                    self.info("Skipping %r (%s)" % (name, code))

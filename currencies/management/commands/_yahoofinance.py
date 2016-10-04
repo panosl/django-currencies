@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys, re, json
-#from urllib2 import urlopen, HTTPError
 # requires beautifulsoup4 and requests
 from bs4 import BeautifulSoup as BS4
 from requests import get, exceptions
@@ -10,7 +9,7 @@ from datetime import datetime
 from ._currencyhandler import BaseHandler
 
 
-class YahooHandler(BaseHandler):
+class CurrencyHandler(BaseHandler):
     """
     Currency Handler implements public API:
     endpoint
@@ -90,7 +89,6 @@ class YahooHandler(BaseHandler):
         """Get a single rate, used as fallback"""
         try:
             url = self.onerate_url % (base, code)
-            #rate = urllib2.urlopen(url).read().rstrip()
             resp = get(url)
             resp.raise_for_status()
         except exceptions.HTTPError:
@@ -108,7 +106,16 @@ class YahooHandler(BaseHandler):
         return (currency['shortname'] for currency in self.currencies)
 
     def get_currency(self, code):
-        """Helper function"""
+        """
+        Helper function
+        Returns a dict containing:
+        shortname (the code)
+        longname
+        users - a comma separated list of countries/regions/cities that use it
+        alternatives - alternative names, e.g. ewro, Quid, Buck
+        symbol - e.g. £, $
+        highlight - ?
+        """
         for currency in self.currencies:
             if currency['shortname'] == code:
                 return currency
@@ -123,7 +130,10 @@ class YahooHandler(BaseHandler):
         return self.get_currency(code)['symbol']
 
     def get_rate(self, code):
-        """Helper function to access the rates structure"""
+        """
+        Helper function to access the rates structure
+        Returns a dict containing name, price, symbol (the code), timestamp, type, utctime & volume
+        """
         rateslist = self.rates['list']['resources']
         for rate in rateslist:
             rateobj = rate['resource']['fields']
@@ -182,29 +192,3 @@ class YahooHandler(BaseHandler):
             return ratefactor
         else:
             return self.ratechangebase(ratefactor, self.base, base)
-
-
-def get_handle(print_info, print_warn):
-    """
-    Get a handle to the currency client and description string
-    Passes helper functions for informational and warning messages
-    """
-    y = YahooHandler(print_info, print_warn)
-    return y, y.endpoint
-
-def get_allcurrencycodes(handle):
-    return handle.get_allcurrencycodes()
-
-def get_currencyname(handle, code):
-    return handle.get_currencyname(code)
-
-
-
-def get_ratetimestamp(handle, base, code):
-    return handle.get_ratetimestamp(base, code)
-
-def get_ratefactor(handle, base, code):
-    return handle.get_ratefactor(base, code)
-
-def remove_cache():
-    pass

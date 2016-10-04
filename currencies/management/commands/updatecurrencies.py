@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from decimal import Decimal
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 
 from .currencies import Command as CurrencyCommand
 from ...models import Currency
@@ -29,9 +28,11 @@ class Command(CurrencyCommand):
     def handle(self, *args, **options):
         """Handle the command"""
         # get the command arguments
-        self.import_source(options[self._source_param])
-        verbose = int(options.get('verbosity', 0))
+        self.verbose = int(options.get('verbosity', 0))
         base, base_was_arg = self.get_base(options['base'])
+
+        # Import the CurrencyHandler and get an instance
+        handler = self.get_handler(options)
 
         # See if the db already has a base currency
         try:
@@ -55,7 +56,7 @@ class Command(CurrencyCommand):
                     "Base currency %r does not exist in the db! Rates will be erroneous without it." % base)
 
         if db_base and base_was_arg and base_in_db and (db_base != base):
-            self.stderr.write("Changing db base currency from: %s to: %s" % (db_base, base))
+            self.info("Changing db base currency from %s to %s" % (db_base, base))
             db_base_obj.is_base = False
             db_base_obj.save()
             base_obj.is_base = True
@@ -64,28 +65,25 @@ class Command(CurrencyCommand):
             base_obj.is_base = True
             base_obj.save()
 
-        if verbose >= 1:
-            self.stdout.write("Using %s as base for all currencies" % base)
+        self.info("Using %s as base for all currencies" % base)
+        self.info("Querying database at %s" % handler.endpoint)
 
-        # get a handle for the connection
-        handle, endpoint = self.get_handle(self.stdout.write, self.stderr.write)
-        if verbose >= 1:
-            self.stdout.write("Querying database at %s" % endpoint)
-
+        obj = None
         for obj in Currency._default_manager.all():
-            rate = self.get_ratefactor(handle, base, obj.code)
+            rate = handler.get_ratefactor(base, obj.code)
             if not rate:
                 self.stderr.write("Could not find rates for %s (%s)" % (obj.name, obj.code))
                 continue
 
             factor = rate.quantize(Decimal(".0001"))
             if obj.factor != factor:
-                if verbose >= 1:
+                if self.verbose:
                     update_str = ""
-                    timestamp = self.get_ratetimestamp(handle, base, obj.code)
+                    timestamp = handler.get_ratetimestamp(base, obj.code)
                     if timestamp:
                         update_str = ", updated at %s" % timestamp
                     self.stdout.write("Updating %s rate to %f%s" % (obj, factor, update_str))
 
                 Currency._default_manager.filter(pk=obj.pk).update(factor=factor)
-        self.remove_cache()
+        if not obj:
+            self.stderr.write("No currencies found in the db to update; try the currencies command!")

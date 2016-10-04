@@ -1,102 +1,98 @@
 # -*- coding: utf-8 -*-
-import sys
-from decimal import Decimal
 from datetime import datetime
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-
+# Uses one of the python3-compatible forks of github metglobal/openexchangerates client
 from openexchangerates import OpenExchangeRatesClient, OpenExchangeRatesClientException
+from ._currencyhandler import BaseHandler
 
-# Initialisation
-APP_ID = getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
-if APP_ID is None:
-    raise ImproperlyConfigured(
-        "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")
 
-def get_handle(print_info, print_warn):
+class CurrencyHandler(BaseHandler):
     """
-    Get a handle to the currency client and description string
-    Passes helper functions for informational and warning messages
+    Currency Handler implements public API:
+    endpoint
+    get_allcurrencycodes()
+    get_currencyname(code)
+    get_currencysymbol(code) - optional
+    get_ratetimestamp(base, code)
+    get_ratefactor(base, code)
     """
-    module = sys.modules[__name__]
-    setattr(module, 'info', print_info)
-    setattr(module, 'warn', print_warn)
-    client = OpenExchangeRatesClient(APP_ID)
-    return client, client.ENDPOINT_CURRENCIES
 
-currencies = None
-def get_allcurrencycodes(handle):
-    """Return an iterable of 3 character ISO 4217 currency codes"""
-    global currencies
-    currencies = handle.currencies()
-    return currencies.keys()
+    def __init__(self, *args):
+        """Override the init to check for the APP_ID"""
+        APP_ID = getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
+        if not APP_ID:
+            raise ImproperlyConfigured(
+                "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")
+        self.client = OpenExchangeRatesClient(APP_ID)
+        self.endpoint = self.client.ENDPOINT_CURRENCIES
+        super(CurrencyHandler, self).__init__(*args)
 
-def get_currencyname(handle, code):
-    """Return the currency name from the code"""
-    if not currencies:
-        get_allcurrencycodes(handle)
-    return currencies[code]
+    _currencies = None
+    @property
+    def currencies(self):
+        if not self._currencies:
+            self._currencies = self.client.currencies()
+        return self._currencies
 
-rates = None
-def check_rates(rates, base):
-    """Local helper function for validating rates response"""
+    def get_allcurrencycodes(self):
+        """Return an iterable of 3 character ISO 4217 currency codes"""
+        return self.currencies.keys()
 
-    if "rates" not in rates:
-        raise RuntimeError("OpenExchangeRates: 'rates' not found in results")
-    if "base" not in rates or rates["base"] != base or base not in rates["rates"]:
-        warn("OpenExchangeRates: 'base' not found in results")
+    def get_currencyname(self, code):
+        """Return the currency name from the code"""
+        return self.currencies[code]
 
-def changebase(rates, current_base, new_base):
-    """
-    Local helper function for changing currency base, returns new rates
-    Defaults to ROUND_HALF_EVEN
-    """
-    check_rates(rates, current_base)
-    if new_base not in rates["rates"]:
-        raise RuntimeError("OpenExchangeRates: %s not found in rates whilst changing base" % new_base)
 
-    warn("OpenExchangeRates: changing base ourselves")
-    multiplier = Decimal(1) / rates["rates"][new_base]
-    for code, rate in rates["rates"].items():
-        rates["rates"][code] = (rate * multiplier).quantize(Decimal(".0001"))
-    rates["base"] = new_base
-    check_rates(rates, new_base)
-    return rates
+    def check_rates(self, rates, base):
+        """Local helper function for validating rates response"""
 
-def get_latestcurrencyrates(handle, base):
-    """
-    Local helper function
-    Changing base is only available for paid-for plans, hence we do it ourselves
-    """
-    global rates
-    if not rates:
+        if "rates" not in rates:
+            raise RuntimeError("OpenExchangeRates: 'rates' not found in results")
+        if "base" not in rates or rates["base"] != base or base not in rates["rates"]:
+            self.warn("OpenExchangeRates: 'base' not found in results")
+        self.rates = rates
+
+    rates = None
+    @property
+    def base(self):
+        """Only access self.base after check_rates has validated rates"""
+        return self.rates["base"]
+
+    def get_latestcurrencyrates(self, base):
+        """
+        Local helper function
+        Changing base is only available for paid-for plans, hence we do it ourselves if required
+        Default is USD
+        """
+        if not self.rates:
+            try:
+                rates = self.client.latest(base=base)
+            except OpenExchangeRatesClientException as e:
+                base = 'USD'
+                if str(e).startswith('403'):
+                    rates = self.client.latest(base=base)
+                else:
+                    raise
+            self.check_rates(rates, base)
+
+    def get_ratetimestamp(self, base, code):
+        """Return rate timestamp in datetime format"""
+        self.get_latestcurrencyrates(base)
         try:
-            rates = handle.latest(base=base)
-            check_rates(rates, base)
-        except OpenExchangeRatesClientException as e:
-            default_base = 'USD'
-            if str(e).startswith('403'):
-                rates = changebase(handle.latest(base=default_base), default_base, base)
-            else:
-                raise
+            return datetime.fromtimestamp(self.rates["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")
+        except KeyError:
+            return None
 
-def get_ratetimestamp(handle, base, code):
-    """Return rate timestamp in datetime format"""
-    get_latestcurrencyrates(handle, base)
-    try:
-        return datetime.fromtimestamp(rates["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")
-    except KeyError:
-        return None
+    def get_ratefactor(self, base, code):
+        """Return the Decimal currency exchange rate factor of 'code' compared to 1 'base' unit, or None"""
+        self.get_latestcurrencyrates(base)
+        try:
+            ratefactor = self.rates["rates"][code]
+        except KeyError:
+            return None
 
-def get_ratefactor(handle, base, code):
-    """Return the Decimal currency exchange rate factor of 'code' compared to 1 'base' unit, or None"""
-    get_latestcurrencyrates(handle, base)
-    try:
-        return Decimal(rates["rates"][code])
-    except KeyError:
-        return None
-
-def remove_cache():
-    """Remove any cached data"""
-    global currencies, rates
-    currencies = rates = None
+        if base == self.base:
+            return ratefactor
+        else:
+            return self.ratechangebase(ratefactor, self.base, base)
