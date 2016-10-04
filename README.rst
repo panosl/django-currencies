@@ -115,9 +115,15 @@ You will need to specify your API key in your settings file:
 
     OPENEXCHANGERATES_APP_ID = "c2b2efcb306e075d9c2f2d0b614119ea"
 
+Requirements: `OpenExchangeRatesClient <https://github.com/metglobal/openexchangerates>`_
+or one of the python3-compatible forks.
+
 **Yahoo Finance**
 
 Select this source by specifying ``yahoo`` as positional argument.
+
+Requirements: `BeautifulSoup4 <https://www.crummy.com/software/BeautifulSoup/bs4/doc/>`_
+and `requests <http://docs.python-requests.org/en/master/>`_
 
 Usage
 -----
