@@ -1,32 +1,57 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 from decimal import Decimal as D, ROUND_UP
 
 from .models import Currency as C
+from .models import DailyCurrencyExchangeRate
 from .conf import SESSION_KEY
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 
-def calculate(price, code):
-    to, default = C.active.get(code=code), C.active.default()
+def calculate(price, code, date=None, fail_when_no_data=False):
+    to = get_daily_exchnge_rate(code, date, fail_when_no_data)
+    default = get_daily_exchnge_rate(date=date, fail_when_no_data=fail_when_no_data)
 
     # First, convert from the default currency to the base currency,
     # then convert from the base to the given currency
     price = (D(price) / default.factor) * to.factor
 
-    return price.quantize(D("0.01"), rounding=ROUND_UP)
+    return price.quantize(D("0.0001"), rounding=ROUND_UP)
 
 
-def convert(amount, from_code, to_code):
+def convert(amount, from_code, to_code, date=None, fail_when_no_data=False):
     if from_code == to_code:
       return amount
 
-    from_, to = C.active.get(code=from_code), C.active.get(code=to_code)
+    from_ = get_daily_exchnge_rate(from_code, date, fail_when_no_data)
+    to = get_daily_exchnge_rate(to_code, date)
 
     amount = D(amount) * (to.factor / from_.factor)
-    return amount.quantize(D("0.01"), rounding=ROUND_UP)
+    return amount.quantize(D("0.0001"), rounding=ROUND_UP)
+
+
+def get_daily_exchnge_rate(code=None, date=None, fail_when_no_data=False):
+    date = date or datetime.date.today()
+
+    query = DailyCurrencyExchangeRate.active\
+        .filter(datetime__lte=date)
+
+    # Select default currency if no code passed
+    if code:
+        query = query.filter(currency__code=code)
+    else:
+        query = query.filter(currency__is_default=True)
+
+    daily_exchange_rate = query.order_by("-datetime")[0]
+
+    if fail_when_no_data and daily_exchange_rate.date > date:
+        raise Exception("Could not find an exchange rate for {code} on {date}"
+            .format(code=code, date=datetime.date.strftime(date, "%Y-%m-%d")))
+
+    return daily_exchange_rate
 
 
 def get_currency_code(request):
