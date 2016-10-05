@@ -56,7 +56,7 @@ class Command(BaseCommand):
 
                     c_list = C._default_manager.filter(code=code)
                     if len(c_list) == 0:
-                        c = C._default_manager.create(code=code, name=currencies[code], is_active=False)
+                        c = C._default_manager.create(code=code, name=currencies[code])
                     else:
                         c = c_list[0]
 
