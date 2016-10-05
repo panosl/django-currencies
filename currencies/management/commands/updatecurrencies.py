@@ -38,7 +38,7 @@ class Command(BaseCommand):
         else:
             date = datetime.date.today()
 
-        if DailyCurrencyExchangeRate.objects.filter(datetime__range=(date, date + datetime.timedelta(days=1)))[:1] and not options["force"]:
+        if DailyCurrencyExchangeRate.objects.filter(date=date) and not options["force"]:
             raise Exception("Data for %s already retrieved. Use '--force=1' to override." % datetime.date.strftime(date, "%Y-%m-%d"))
 
         client = OpenExchangeRatesClient(APP_ID)
@@ -51,9 +51,9 @@ class Command(BaseCommand):
             code = 'USD'  # fallback to default
 
         l = client.historical(base=code, date=date)
-        report_datetime = datetime.datetime.fromtimestamp(l["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")
 
         if self.verbose >= 1 and "timestamp" in l:
+            report_datetime = datetime.datetime.fromtimestamp(l["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")
             self.stdout.write("Rates last updated on %s" % report_datetime)
 
         if "base" in l:
@@ -80,9 +80,9 @@ class Command(BaseCommand):
 
             exchange_rate = DailyCurrencyExchangeRate.objects\
                 .filter(currency=c)\
-                .filter(datetime__range=(date, date + datetime.timedelta(days=1)))
+                .filter(date=date)
 
             if exchange_rate:
-                exchange_rate.update(factor=factor, datetime=report_datetime)
+                exchange_rate.update(factor=factor, date=date)
             else:
-                DailyCurrencyExchangeRate.objects.create(currency=c, factor=factor, datetime=report_datetime)
+                DailyCurrencyExchangeRate.objects.create(currency=c, factor=factor, date=date)

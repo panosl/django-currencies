@@ -50,10 +50,10 @@ class Currency(models.Model):
 
 class DailyCurrencyExchangeRate(models.Model):
 
-    currency = models.ForeignKey(Currency)
+    currency = models.ForeignKey(Currency, db_index=True)
     factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10, default=1.0,
         help_text=_('Specifies the difference of the currency to default one.'))
-    datetime = models.DateTimeField(db_index=True)
+    date = models.DateField(db_index=True)
 
     objects = models.Manager()
     active = ExchangeRatesManager()
