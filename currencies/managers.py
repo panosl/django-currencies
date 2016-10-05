@@ -14,3 +14,8 @@ class CurrencyManager(models.Manager):
 
     def base(self):
         return self.get(is_base=True)
+
+
+class ExchangeRatesManager(models.Manager):
+    def get_queryset(self):
+        return super(ExchangeRatesManager, self).get_queryset().filter(currency__is_active=True)

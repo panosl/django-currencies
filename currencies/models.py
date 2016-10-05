@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 
-from .managers import CurrencyManager
+from .managers import CurrencyManager, ExchangeRatesManager
 
 
 @python_2_unicode_compatible
@@ -54,3 +54,6 @@ class DailyCurrencyExchangeRate(models.Model):
     factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10, default=1.0,
         help_text=_('Specifies the difference of the currency to default one.'))
     datetime = models.DateTimeField(db_index=True)
+
+    objects = models.Manager()
+    active = ExchangeRatesManager()
