@@ -37,7 +37,7 @@ def get_daily_exchnge_rate(code=None, date=None, fail_when_no_data=False):
     date = date or datetime.date.today()
 
     query = DailyCurrencyExchangeRate.active\
-        .filter(datetime__lte=date)
+        .filter(date__lte=date)
 
     # Select default currency if no code passed
     if code:
@@ -45,7 +45,7 @@ def get_daily_exchnge_rate(code=None, date=None, fail_when_no_data=False):
     else:
         query = query.filter(currency__is_default=True)
 
-    daily_exchange_rate = query.order_by("-datetime")[0]
+    daily_exchange_rate = query.order_by("-date")[0]
 
     if fail_when_no_data and daily_exchange_rate.date > date:
         raise Exception("Could not find an exchange rate for {code} on {date}"
