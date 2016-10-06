@@ -45,11 +45,19 @@ def get_daily_exchnge_rate(code=None, date=None, fail_when_no_data=False):
     else:
         query = query.filter(currency__is_default=True)
 
-    daily_exchange_rate = query.order_by("-date")[0]
+    try:
+        daily_exchange_rate = query.order_by("-date")[0]
+    except IndexError:
+        raise Exception("Could not find an exchange rate for {code}".format(code=code or "DEFAULT_CURRENCY"))
 
-    if fail_when_no_data and daily_exchange_rate.date > date:
-        raise Exception("Could not find an exchange rate for {code} on {date}"
-            .format(code=code, date=datetime.date.strftime(date, "%Y-%m-%d")))
+    if fail_when_no_data and daily_exchange_rate.date < date:
+        raise Exception("Could not find an exchange rate for {code} specifically on {date}, but found on {alternative_date}"
+            .format(
+                code=code,
+                date=datetime.date.strftime(date, "%Y-%m-%d"),
+                alternative_date=datetime.date.strftime(daily_exchange_rate.date, "%Y-%m-%d")
+            )
+        )
 
     return daily_exchange_rate
 
