@@ -151,7 +151,7 @@ class CurrencyHandler(BaseHandler):
         raise RuntimeError("YahooFinance: baserate not found")
 
     def get_ratetimestamp(self, base, code):
-        """Return rate timestamp in datetime format or None"""
+        """Return rate timestamp as a string or None"""
         try:
             ts = int(self.get_rate(code)['ts'])
         except RuntimeError:

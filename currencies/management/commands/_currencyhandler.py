@@ -17,6 +17,8 @@ class BaseHandler(object):
     get_ratetimestamp(base, code)
     get_ratefactor(base, code)
     """
+    # For caching downloaded currency data
+    _dir = os.path.dirname(os.path.abspath(__file__))
 
     def __init__(self, print_info, print_warn):
         """Save the message stream functions"""
@@ -27,7 +29,7 @@ class BaseHandler(object):
     def get_currencysymbol(self, code):
         """Retrieve the currency symbol from the local file"""
         if not self._symbols:
-            symbolpath = os.path.join(os.path.dirname(__file__), 'currencies.json')
+            symbolpath = os.path.join(self._dir, 'currencies.json')
             with open(symbolpath) as df:
                 self._symbols = json.load(df)
         return self._symbols.get(code)

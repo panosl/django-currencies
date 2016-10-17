@@ -77,7 +77,7 @@ class CurrencyHandler(BaseHandler):
             self.check_rates(rates, base)
 
     def get_ratetimestamp(self, base, code):
-        """Return rate timestamp in datetime format"""
+        """Return rate timestamp as a string or None"""
         self.get_latestcurrencyrates(base)
         try:
             return datetime.fromtimestamp(self.rates["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")

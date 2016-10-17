@@ -9,8 +9,9 @@ from ...models import Currency
 # The list of available backend currency sources
 sources = OrderedDict([
     # oxr must remain first for backward compatibility
-    ('oxr', '._openexchangerates'),
-    ('yahoo', '._yahoofinance'),
+    ('oxr',     '._openexchangerates'),
+    ('yahoo',   '._yahoofinance'),
+    ('iso',     '._currencyiso'),
     #TODO:
     #('google', '._googlecalculator.py'),
     #('ecb', '._europeancentralbank.py'),
@@ -25,7 +26,7 @@ class Command(BaseCommand):
     _source_default = next(iter(sources))
     _source_kwargs = {'action': 'store', 'nargs': '?', 'default': _source_default,
                         'choices': sources.keys(),
-                        'help': 'Select the desired currency rate source, default is ' + _source_default}
+                        'help': 'Select the desired currency source, default is ' + _source_default}
 
     def add_arguments(self, parser):
         """Add command arguments"""
@@ -73,19 +74,31 @@ class Command(BaseCommand):
         # iterate through the available currency codes
         for code in handler.get_allcurrencycodes():
             if (not imports) or code in imports:
+                obj, created = Currency._default_manager.get_or_create(code=code)
                 name = handler.get_currencyname(code)
-                if (not Currency._default_manager.filter(code=code)) or force is True:
-                    self.info("Creating %r (%s)" % (name, code))
-
-                    obj, created = Currency._default_manager.get_or_create(code=code)
+                description = "%r (%s)" % (name, code)
+                if created or force:
+                    kwargs = {}
                     if created:
-                        Currency._default_manager.filter(pk=obj.pk).update(name=name, is_active=False)
-
-                    if bool(obj.symbol) and force is False:
-                        continue
-
+                        kwargs['is_active'] = False
+                        self.info("Creating %s" % description)
+                    else:
+                        self.info("Updating %s" % description)
+                    if name:
+                        kwargs['name'] = name
                     symbol = handler.get_currencysymbol(code)
                     if symbol:
-                        Currency._default_manager.filter(pk=obj.pk).update(symbol=symbol)
+                        kwargs['symbol'] = symbol
+                    try:
+                        infodict = handler.get_info(code)
+                    except AttributeError:
+                        pass
+                    else:
+                        if infodict:
+                            obj.info.update(infodict)
+                            kwargs['info'] = obj.info
+
+                    Currency._default_manager.filter(pk=obj.pk).update(**kwargs)
+
                 else:
-                    self.info("Skipping %r (%s)" % (name, code))
+                    self.info("Skipping %s" % description)
