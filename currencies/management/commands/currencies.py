@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
-import json
 from collections import OrderedDict
 from importlib import import_module
 from django.conf import settings
@@ -17,17 +15,6 @@ sources = OrderedDict([
     #('google', '._googlecalculator.py'),
     #('ecb', '._europeancentralbank.py'),
 ])
-
-
-symbols = None
-def get_symbol(code):
-    """Retrieve the currency symbol from the local file"""
-    global symbols
-    if not symbols:
-        symbolpath = os.path.join(os.path.dirname(__file__), 'currencies.json')
-        with open(symbolpath) as df:
-            symbols = json.load(df)
-    return symbols.get(code)
 
 
 class Command(BaseCommand):
