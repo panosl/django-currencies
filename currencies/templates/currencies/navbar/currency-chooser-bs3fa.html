@@ -1,0 +1,17 @@
+{% load currency %}{% spaceless %}
+{% comment %} Example BS3 FA currency-chooser {% endcomment %}
+{% if CURRENCIES|length > 1 and not currency_dropdown_hidden %}
+<li class="dropdown {{ dropdown_extra_class }}" dropdown>
+    <a class="dropdown-toggle" title="{{ CURRENCY.name }}" dropdown-toggle>
+        <i class="fa fa-money"></i>&nbsp;{{ CURRENCY_CODE }}&nbsp;<b class="caret"></b>
+    </a>
+    <ul class="dropdown-menu" role="menu">
+    {% for curr in CURRENCIES %}
+        <li{% ifequal curr.code CURRENCY.code %} class="active"{% endifequal %}>
+            <a href="{% url 'currencies_set_currency' %}?currency_code={{ curr.code }}"
+                title="{{ curr.name }}">{{ curr.symbol }}&nbsp;{{ curr.code }}</a>
+        </li>
+    {% endfor %}
+    </ul>
+</li>
+{% endif %}{% endspaceless %}

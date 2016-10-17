@@ -167,6 +167,36 @@ or set the ``CURRENCY_CODE`` context variable with a ``POST`` to the included vi
 
     {% url 'currencies_set_currency' [currency_code] %}
 
+Included is a template for a Bootstrap 3 & fontawesome compatible navbar currency
+chooser. The navbar item will display if there are more than 1 active currencies. 
+
+.. code-block:: html+django
+
+    {% block navbar-nav %}
+        ...
+        <ul class="nav navbar-nav navbar-right">
+            ...
+            {% include "currencies/navbar/currency-chooser-bs3fa.html" %}
+
+There are also two parameters: ``currency_dropdown_hidden`` and ``dropdown_extra_class``.
+The former can be used to hide the chooser on certain pages. The latter is used to
+supply extra classes to the dropdown:
+
+.. code-block:: html+django
+
+    {% include "navbar.html" with currency_dropdown_hidden=True %}
+
+.. code-block:: html+django
+
+    {% with dropdown_extra_class="collapsed-nav" %}
+    {% include "currencies/navbar/currency-chooser-bs3fa.html" %}
+    {% endwith %}
+
+.. warning::
+
+    The currency choice may not be changed if your view is not re-rendered. This may be
+    the case if you are viewing the default page of Django CMS for example.
+
 License
 -------
 
