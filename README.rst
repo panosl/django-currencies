@@ -192,10 +192,12 @@ supply extra classes to the dropdown:
     {% include "currencies/navbar/currency-chooser-bs3fa.html" %}
     {% endwith %}
 
-.. warning::
+.. note::
 
-    The currency choice may not be changed if your view is not re-rendered. This may be
-    the case if you are viewing the default page of Django CMS for example.
+    The currency choice may not be reflacted on the navbar if your view is not re-rendered.
+    This may be the case if you are viewing the default page of Django CMS for example.
+    This is due to the context processor not being triggered because the RequestContext
+    is not re-generated.
 
 License
 -------
