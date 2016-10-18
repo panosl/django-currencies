@@ -9,7 +9,7 @@
     {% for curr in CURRENCIES %}
         <li{% ifequal curr.code CURRENCY.code %} class="active"{% endifequal %}>
             <a href="{% url 'currencies_set_currency' %}?currency_code={{ curr.code }}"
-                title="{{ curr.name }}">{{ curr.symbol }}&nbsp;{{ curr.code }}</a>
+                title="{{ curr.name }}">{{ curr.symbol|default:"&nbsp;" }}&nbsp;{{ curr.code }}</a>
         </li>
     {% endfor %}
     </ul>
