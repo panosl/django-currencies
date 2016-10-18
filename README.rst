@@ -136,14 +136,14 @@ Requirements: `requests <http://docs.python-requests.org/en/master/>`_
 ===========  ==========  =====  =======  ==========
 Integration               Live Feeds
 -----------  --------------------------------------
-             Currencies  Rates  Symbols  Other Info
+..           Currencies  Rates  Symbols  Other Info
 ===========  ==========  =====  =======  ==========
     oxr          |T|      |T|
    yahoo         |T|      |T|     |T|       |T|
     iso          |T|              |T|       |T|
 ===========  ==========  =====  =======  ==========
 
-.. |T| unicode:: U+2714 .. ticked
+.. |T| unicode:: U+2705 .. ticked
 
 Other info includes ISO4217 number and exponent, country and city names, and alternative
 currency names.
