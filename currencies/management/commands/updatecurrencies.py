@@ -93,8 +93,7 @@ class Command(CurrencyCommand):
                 else:
                     update_str = ""
 
-                if self.verbose:
-                    self.stdout.write("Updating %s rate to %f%s" % (obj, factor, update_str))
+                self.info("Updating %s rate to %f%s" % (obj, factor, update_str))
 
                 Currency._default_manager.filter(pk=obj.pk).update(**kwargs)
         if not obj:
