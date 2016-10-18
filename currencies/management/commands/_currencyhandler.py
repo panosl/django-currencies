@@ -6,6 +6,7 @@ from decimal import Decimal
 class BaseHandler(object):
     """
     Base Currency Handler implements helpers:
+    _dir
     info(), warn()
     get_currencysymbol(code) - should be overridden
     ratechangebase(Decimal, current_base, new_base)
@@ -14,8 +15,11 @@ class BaseHandler(object):
     endpoint
     get_allcurrencycodes()
     get_currencyname(code)
-    get_ratetimestamp(base, code)
+
+    Optional - do not implement:
+    get_info(code):
     get_ratefactor(base, code)
+    get_ratetimestamp(base, code)
     """
     # For caching downloaded currency data
     _dir = os.path.dirname(os.path.abspath(__file__))

@@ -13,10 +13,7 @@ class CurrencyHandler(BaseHandler):
     endpoint
     get_allcurrencycodes()
     get_currencyname(code)
-    get_ratetimestamp(base, code)
-    get_ratefactor(base, code) - Not implemented
-    
-    Extra info API:
+    get_currencysymbol(code)
     get_info(code)
     """
     _name = 'currency-iso.org'
@@ -25,6 +22,7 @@ class CurrencyHandler(BaseHandler):
     _cached_currency_file = os.path.join(BaseHandler._dir, '_currencyiso.xml')
 
     _currencies = None
+    published = None
 
     @property
     def currencies(self):
@@ -39,7 +37,7 @@ class CurrencyHandler(BaseHandler):
             resp = get(self.endpoint)
             resp.raise_for_status()
         except exceptions.RequestException as e:
-            pass
+            self.warn("%s: Problem whilst contacting endpoint:\n%s" % (self._name, e))
         else:
             with open(self._cached_currency_file, 'w') as fd:
                 fd.write(resp.text)
@@ -47,7 +45,7 @@ class CurrencyHandler(BaseHandler):
         try:
             root = ET.parse(self._cached_currency_file).getroot()
         except FileNotFoundError as e:
-            raise RuntimeError(e)
+            raise RuntimeError("XML not found at endpoint or as cached file:\n%s" % e)
 
         return root
 
@@ -106,17 +104,20 @@ class CurrencyHandler(BaseHandler):
         """Return a dict of information about the currency"""
         for i, currency in enumerate(self.get_currency(code)):
             if i == 0:
+                try:
+                    exp = int(currency.find('CcyMnrUnts').text)
+                except ValueError:
+                    exp = 0
                 info = {
-                    'CountryNames': [currency.find('CtryNm').text],
+                    'CountryNames': [],
                     'ISO4217Number': int(currency.find('CcyNbr').text),
-                    'ISO4217Exponent': int(currency.find('CcyMnrUnts').text),
+                    'ISO4217Exponent': exp,
+                    'ISOUpdate': self.published.isoformat(),
                 }
-            else:
-                info['CountryNames'] += [currency.find('CtryNm').text]
+            try:
+                ctry_name = currency.find('CtryNm').text
+            except AttributeError:
+                continue
+            if ctry_name:
+                info['CountryNames'] += [ctry_name]
         return info
-
-    def get_ratetimestamp(self, base, code):
-        return self.published.strftime("%Y-%m-%d %H:%M:%S")
-
-    def get_ratefactor(self, base, code):
-        raise NotImplementedError("%s does not provide rates information" % self._name)
