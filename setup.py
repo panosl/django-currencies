@@ -50,6 +50,7 @@ setup(
 
     install_requires=[
         'django>=1.4.2',
+        'openexchangerates==0.1.1'
     ],    
     requires=[
         'Django (>=1.4.2)',
