@@ -13,7 +13,6 @@ class CurrencyHandler(BaseHandler):
     endpoint
     get_allcurrencycodes()
     get_currencyname(code)
-    get_currencysymbol(code) - optional
     get_ratetimestamp(base, code)
     get_ratefactor(base, code)
     """
@@ -77,10 +76,10 @@ class CurrencyHandler(BaseHandler):
             self.check_rates(rates, base)
 
     def get_ratetimestamp(self, base, code):
-        """Return rate timestamp in datetime format"""
+        """Return rate timestamp as a datetime/date or None"""
         self.get_latestcurrencyrates(base)
         try:
-            return datetime.fromtimestamp(self.rates["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")
+            return datetime.fromtimestamp(self.rates["timestamp"])
         except KeyError:
             return None
 

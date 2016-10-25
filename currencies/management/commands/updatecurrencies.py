@@ -66,24 +66,35 @@ class Command(CurrencyCommand):
             base_obj.save()
 
         self.info("Using %s as base for all currencies" % base)
-        self.info("Querying database at %s" % handler.endpoint)
+        self.info("Getting currency rates from %s" % handler.endpoint)
 
         obj = None
         for obj in Currency._default_manager.all():
-            rate = handler.get_ratefactor(base, obj.code)
+            try:
+                rate = handler.get_ratefactor(base, obj.code)
+            except AttributeError:
+                self.stderr.write("This source does not provide currency rate information")
+                return
             if not rate:
                 self.stderr.write("Could not find rates for %s (%s)" % (obj.name, obj.code))
                 continue
 
             factor = rate.quantize(Decimal(".0001"))
             if obj.factor != factor:
-                if self.verbose:
+                kwargs = {'factor': factor}
+                try:
+                    datetime = handler.get_ratetimestamp(base, obj.code)
+                except AttributeError:
+                    datetime = None
+                if datetime:
+                    obj.info.update({'RateUpdate': datetime.isoformat()})
+                    kwargs['info'] = obj.info
+                    update_str = ", updated at %s" % datetime.strftime("%Y-%m-%d %H:%M:%S")
+                else:
                     update_str = ""
-                    timestamp = handler.get_ratetimestamp(base, obj.code)
-                    if timestamp:
-                        update_str = ", updated at %s" % timestamp
-                    self.stdout.write("Updating %s rate to %f%s" % (obj, factor, update_str))
 
-                Currency._default_manager.filter(pk=obj.pk).update(factor=factor)
+                self.info("Updating %s rate to %f%s" % (obj, factor, update_str))
+
+                Currency._default_manager.filter(pk=obj.pk).update(**kwargs)
         if not obj:
             self.stderr.write("No currencies found in the db to update; try the currencies command!")
