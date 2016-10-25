@@ -13,16 +13,26 @@ class Command(CurrencyCommand):
         """Add command arguments"""
         parser.add_argument(self._source_param, **self._source_kwargs)
         parser.add_argument('--base', '-b', action='store',
-            help='Supply the base currency as code or settings variable name; default is taken from the db, otherwise USD')
+            help=   'Supply the base currency as code or a settings variable name. '
+                    'The default is taken from settings CURRENCIES_BASE or SHOP_DEFAULT_CURRENCY, '
+                    'or the db, otherwise USD')
 
     def get_base(self, option):
-        """Parse the base command option. Can be supplied as a 3 character code or a settings variable name"""
+        """
+        Parse the base command option. Can be supplied as a 3 character code or a settings variable name
+        If base is not supplied, looks for settings CURRENCIES_BASE and SHOP_DEFAULT_CURRENCY
+        """
         if isinstance(option, str) and option.isupper():
             if len(option) == 3:
                 return option, True
             else:
                 return getattr(settings, option), True
         else:
+            for attr in ('CURRENCIES_BASE', 'SHOP_DEFAULT_CURRENCY'):
+                try:
+                    return getattr(settings, attr), True
+                except AttributeError:
+                    continue
             return 'USD', False
 
     def handle(self, *args, **options):

@@ -102,6 +102,8 @@ settings that points to an iterable respectively:
     ./manage.py currencies --import=USD --import=EUR
     ./manage.py currencies -i SHOP_CURRENCIES
 
+The command automatically looks for variables CURRENCIES or SHOP_CURRENCIES
+in settings if ``-i`` is not specified.
 For more information on the additional switches ``--force`` and ``--verbosity``
 try ``./manage.py help currencies``.
 
@@ -112,6 +114,9 @@ exchange rates by specifying the ``--base`` switch like so:
 
     ./manage.py updatecurrencies oxr --base=USD
     ./manage.py updatecurrencies yahoo -b SHOP_DEFAULT_CURRENCY
+
+The command automatically looks for variables CURRENCIES_BASE or SHOP_DEFAULT_CURRENCY
+in settings if ``-b`` is not specified.
 
 **OpenExchangeRates**
 
