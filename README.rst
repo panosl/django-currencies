@@ -182,8 +182,12 @@ or use the template tag ``currency_context``:
 
 which gives the three context variables: ``CURRENCIES``, ``CURRENCY_CODE`` and ``CURRENCY``.
 
+**Template**
+
 Included is a template for a Bootstrap 3 & fontawesome compatible navbar currency
-chooser. The navbar item will display if there are more than 1 active currencies. 
+chooser. The navbar item will display if there are more than 1 active currencies.
+There is a navbar parameter ``dropdown_extra_class`` which is used to supply extra classes
+to the dropdown:
 
 .. code-block:: html+django
 
@@ -191,21 +195,9 @@ chooser. The navbar item will display if there are more than 1 active currencies
         ...
         <ul class="nav navbar-nav navbar-right">
             ...
+            {% with dropdown_extra_class="collapsed-nav" %}
             {% include "currencies/navbar/currency-chooser-bs3fa.html" %}
-
-There are also two parameters: ``currency_dropdown_hidden`` and ``dropdown_extra_class``.
-The former can be used to hide the chooser on certain pages. The latter is used to
-supply extra classes to the dropdown:
-
-.. code-block:: html+django
-
-    {% include "navbar.html" with currency_dropdown_hidden=True %}
-
-.. code-block:: html+django
-
-    {% with dropdown_extra_class="collapsed-nav" %}
-    {% include "currencies/navbar/currency-chooser-bs3fa.html" %}
-    {% endwith %}
+            {% endwith %}
 
 .. note::
 

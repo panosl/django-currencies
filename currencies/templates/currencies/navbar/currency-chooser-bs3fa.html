@@ -3,7 +3,7 @@
 
 {% currency_context %}
 
-{% if CURRENCIES|length > 1 and not currency_dropdown_hidden %}
+{% if CURRENCIES|length > 1 %}
 <li class="dropdown {{ dropdown_extra_class }}" dropdown>
     <a class="dropdown-toggle" title="{{ CURRENCY.name }}" dropdown-toggle>
         <i class="fa fa-money"></i>&nbsp;{{ CURRENCY_CODE }}&nbsp;<b class="caret"></b>
