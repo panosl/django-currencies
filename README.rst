@@ -33,7 +33,7 @@ Installation
                'south',
            )
 
-3. Be sure you have the ``currencies.context_processors.currencies`` processor:
+3a. Either have the ``currencies.context_processors.currencies`` processor:
 
    .. code-block:: python
 
@@ -41,6 +41,13 @@ Installation
            'django.core.context_processors.request',  # must be enabled
            'currencies.context_processors.currencies',
        )
+
+3b. Or use the template tag ``currency_context``:
+
+   .. code-block:: html+django
+
+       {% load currency %}
+       {% currency_context %}
 
 4. Update your ``urls.py`` file :
 
@@ -166,6 +173,14 @@ or set the ``CURRENCY_CODE`` context variable with a ``POST`` to the included vi
 .. code-block:: html+django
 
     {% url 'currencies_set_currency' [currency_code] %}
+
+or use the template tag ``currency_context``:
+
+.. code-block:: html+django
+
+    {% currency_context %}
+
+which gives the three context variables: ``CURRENCIES``, ``CURRENCY_CODE`` and ``CURRENCY``.
 
 Included is a template for a Bootstrap 3 & fontawesome compatible navbar currency
 chooser. The navbar item will display if there are more than 1 active currencies. 
