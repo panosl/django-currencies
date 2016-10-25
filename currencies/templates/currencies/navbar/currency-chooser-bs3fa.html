@@ -10,7 +10,7 @@
     </a>
     <ul class="dropdown-menu" role="menu">
     {% for curr in CURRENCIES %}
-        <li{% ifequal curr.code CURRENCY.code %} class="active"{% endifequal %}>
+        <li{% ifequal curr.code CURRENCY_CODE %} class="active"{% endifequal %}>
             <a href="{% url 'currencies_set_currency' %}?currency_code={{ curr.code }}"
                 title="{{ curr.name }}">{{ curr.symbol|default:"&nbsp;" }}&nbsp;{{ curr.code }}</a>
         </li>
