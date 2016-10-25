@@ -2,6 +2,7 @@
 
 from django import template
 from django.template.defaultfilters import stringfilter
+from django.utils.functional import lazy
 
 from currencies.models import Currency
 from currencies.utils import get_currency_code, calculate
@@ -37,3 +38,28 @@ def change_currency(parser, token):
 @register.filter(name='currency')
 def do_currency(price, code):
     return calculate(price, code)
+
+
+def get_currency(code):
+    try:
+        return Currency.active.get(code__iexact=code)
+    except Currency.DoesNotExist:
+        return None
+
+
+@register.simple_tag(takes_context=True)
+def currency_context(context):
+    """
+    Use instead of context processor
+    Context variables are only valid within the block scope
+    """
+    request = context['request']
+
+    lazy_currency_code = lazy(get_currency_code, str)
+    lazy_currency = lazy(get_currency, Currency)
+
+    context['CURRENCIES'] = Currency.active.all() # querysets are already lazy
+    context['CURRENCY_CODE'] = lazy_currency_code(request) # lazy
+    context['CURRENCY'] = lazy_currency(lazy_currency_code(request)) # lazy
+
+    return ''

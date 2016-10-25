@@ -1,5 +1,8 @@
 {% load currency %}{% spaceless %}
 {% comment %} Example BS3 FA currency-chooser {% endcomment %}
+
+{% currency_context %}
+
 {% if CURRENCIES|length > 1 and not currency_dropdown_hidden %}
 <li class="dropdown {{ dropdown_extra_class }}" dropdown>
     <a class="dropdown-toggle" title="{{ CURRENCY.name }}" dropdown-toggle>
