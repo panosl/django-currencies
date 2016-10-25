@@ -33,13 +33,22 @@ class Command(BaseCommand):
         parser.add_argument('--force', '-f', action='store_true', default=False,
             help='Update database even if currency already exists')
         parser.add_argument('--import', '-i', action='append', default=[],
-            help=(  'Selectively import currencies by supplying the currency codes (e.g. USD) one per switch '
-                    'or supply an uppercase settings variable name with an iterable (once only).'))
+            help=   'Selectively import currencies by supplying the currency codes (e.g. USD) one per switch, '
+                    'or supply an uppercase settings variable name with an iterable (once only), '
+                    'or looks for settings CURRENCIES or SHOP_CURRENCIES.')
 
     def get_imports(self, option):
-        """See if we have been passed a set of currencies or a setting variable"""
+        """
+        See if we have been passed a set of currencies or a setting variable
+        or look for settings CURRENCIES or SHOP_CURRENCIES.
+        """
         if not option:
-            self.stderr.write("No imports found. Some currencies may be out-of-date (MTL) or spurious (XPD)")
+            for attr in ('CURRENCIES', 'SHOP_CURRENCIES'):
+                try:
+                    return getattr(settings, attr)
+                except AttributeError:
+                    continue
+            self.stderr.write("Importing all. Some currencies may be out-of-date (MTL) or spurious (XPD)")
             return option
         elif len(option) == 1 and option[0].isupper() and len(option[0]) != 3:
             return getattr(settings, option[0])
