@@ -86,3 +86,8 @@ class Command(BaseCommand):
                 exchange_rate.update(factor=factor, date=date)
             else:
                 DailyCurrencyExchangeRate.objects.create(currency=c, factor=factor, date=date)
+
+            # Temporary hack for our migration
+            if date == datetime.date.today():
+                c.factor = factor
+                c.save()

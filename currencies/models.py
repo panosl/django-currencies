@@ -13,6 +13,8 @@ class Currency(models.Model):
     code = models.CharField(_('code'), max_length=3, db_index=True)
     name = models.CharField(_('name'), max_length=35, db_index=True)
     symbol = models.CharField(_('symbol'), max_length=4, blank=True, db_index=True)
+    factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10, default=1.0,
+                                 help_text=_('Specifies the difference of the currency to default one.'))
 
     is_active = models.BooleanField(_('active'), default=True,
         help_text=_('The currency will be available.'))
