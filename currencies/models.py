@@ -33,7 +33,10 @@ class Currency(models.Model):
         unique_together = ("code", "name")
 
     def __str__(self):
-        return self.code
+        str = self.code
+        if self.symbol:
+            str += " (%s)" % self.symbol
+        return str
 
     def save(self, **kwargs):
         # Make sure the base and default currencies are unique
