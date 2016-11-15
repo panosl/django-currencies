@@ -42,4 +42,8 @@ def get_currency_code(request):
 
 
 def price_rounding(price, decimals=2):
-    return price.quantize(D("0.{}".format('1'.zfill(decimals))), rounding=ROUND_UP)
+    decimal_format = "0.01"
+    # Because of the up-rounding we require at least 2 decimals
+    if decimals > 2:
+        decimal_format = "0.{}".format('1'.zfill(decimals))
+    return price.quantize(D(decimal_format), rounding=ROUND_UP)
