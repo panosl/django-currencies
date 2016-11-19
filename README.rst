@@ -241,9 +241,10 @@ The django-SHOP Money system has been extended to use this app as a currency con
 To enable this functionality your currencies configuration must satisy the following requirements:
 
 1. ISO4217Exponent and symbol populating using ``manage.py currencies iso``
+   (This automatically imports the currencies set in the SHOP_CURRENCIES setting)
 2. Currency factors populating using ``manage.py updatecurrencies <source>``
    (This also sets the base currency to SHOP_DEFAULT_CURRENCY)
-3. Some currencies set to active
+3. Some currencies set to active in the admin interface
 
 **Usage**
 
