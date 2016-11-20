@@ -41,6 +41,14 @@ class AbstractMoney(AbstractMoneyBase):
         amount = convert(self.as_decimal(), self._currency_code, new_type._currency_code, new_type._cents)
         return new_type(amount)
 
+    def is_default(self):
+        """Whether this is the default currency type"""
+        return self._instance.is_default
+
+    def is_base(self):
+        """Whether this is the base currency type"""
+        return self._instance.is_base
+
 
 class MoneyMaker(MoneyMakerBase):
     """Enhances the existing MoneyMaker with currency conversion"""
