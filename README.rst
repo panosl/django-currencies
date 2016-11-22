@@ -120,8 +120,9 @@ You will need to specify your API key in your settings file:
 
     OPENEXCHANGERATES_APP_ID = "c2b2efcb306e075d9c2f2d0b614119ea"
 
-Requirements: `OpenExchangeRatesClient <https://github.com/metglobal/openexchangerates>`_
-or one of the python3-compatible forks.
+Requirements: `requests <http://docs.python-requests.org/en/master/>`_
+(python3-compatible fork of `OpenExchangeRatesClient <https://github.com/metglobal/openexchangerates>`_
+is integrated due to abandoned project)
 
 **Yahoo Finance**
 
