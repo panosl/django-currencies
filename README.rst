@@ -74,7 +74,45 @@ Configuration
 -------------
 
 django-currencies has built-in integration with
-`openexchangerates.org <http://openexchangerates.org/>`_.
+`openexchangerates.org <http://openexchangerates.org/>`_ and `Yahoo Finance <http://finance.yahoo.com/currency-converter/>`_.
+
+**Management Commands**
+
+You can use the management commands ``currencies`` and ``updatecurrencies``
+to maintain the currencies in the database. The former will import any
+currencies that are defined on the selected source. The latter will update
+all the database currencies against the rates returned by the source. Any
+currency missing on the source will be left untouched.
+
+You can selectively import currencies, for example the commands below
+will import USD and EUR currencies only, or use a variable from the
+settings that points to an iterable respectively:
+
+.. code-block:: shell
+
+    ./manage.py currencies --import=USD --import=EUR
+    ./manage.py currencies -i SHOP_CURRENCIES
+
+The command automatically looks for variables CURRENCIES or SHOP_CURRENCIES
+in settings if ``-i`` is not specified.
+For more information on the additional switches ``--force`` and ``--verbosity``
+try ``./manage.py help currencies``.
+
+``updatecurrencies`` can automatically change the base rate of the imported
+exchange rates by specifying the ``--base`` switch like so:
+
+.. code-block:: shell
+
+    ./manage.py updatecurrencies oxr --base=USD
+    ./manage.py updatecurrencies yahoo -b SHOP_DEFAULT_CURRENCY
+
+The command automatically looks for variables CURRENCIES_BASE or SHOP_DEFAULT_CURRENCY
+in settings if ``-b`` is not specified.
+
+**OpenExchangeRates**
+
+This is the default source or select it specifically using ``oxr`` as
+positional argument to either command.
 
 You will need to specify your API key in your settings file:
 
@@ -82,19 +120,15 @@ You will need to specify your API key in your settings file:
 
     OPENEXCHANGERATES_APP_ID = "c2b2efcb306e075d9c2f2d0b614119ea"
 
-You will then be able to use the management commands ``currencies``
-and ``updatecurrencies``. The former will import any currencies that
-are defined on `openexchangerates.org <http://openexchangerates.org/>`_.
-You can selectively import currencies, for example bellow command will
-import USD and EUR currencies only:
+Requirements: `OpenExchangeRatesClient <https://github.com/metglobal/openexchangerates>`_
+or one of the python3-compatible forks.
 
-.. code-block:: shell
+**Yahoo Finance**
 
-    ./manage.py currencies --import=USD --import=EUR
+Select this source by specifying ``yahoo`` as positional argument.
 
-The ``updatecurrencies`` management command will update all your
-currencies against the rates returned by `openexchangerates.org <http://openexchangerates.org/>`_.
-Any missing currency will be left untouched.
+Requirements: `BeautifulSoup4 <https://www.crummy.com/software/BeautifulSoup/bs4/doc/>`_
+and `requests <http://docs.python-requests.org/en/master/>`_
 
 Usage
 -----
