@@ -2,8 +2,7 @@
 from datetime import datetime
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-# Uses one of the python3-compatible forks of github metglobal/openexchangerates client
-from openexchangerates import OpenExchangeRatesClient, OpenExchangeRatesClientException
+from ._openexchangerates_client import OpenExchangeRatesClient, OpenExchangeRatesClientException
 from ._currencyhandler import BaseHandler
 
 
