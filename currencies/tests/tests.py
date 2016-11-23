@@ -17,6 +17,10 @@ class UtilsTest(TestCase):
         response = calculate('10', 'USD')
         self.assertEqual(response, Decimal('15.00'))
 
+    def test_calculate_price_success_three_decimals(self):
+        response = calculate('.5555', 'USD', decimals=3)
+        self.assertEqual(response, Decimal('0.834'))
+
     # def test_calculate_price_failure(self):
     #     response = calculate('10', 'EUR')
     #     self.assertEqual(response, Decimal('0.00'))
