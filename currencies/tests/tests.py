@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from decimal import Decimal
 
 from django import template
@@ -34,16 +36,16 @@ class TemplateTagTest(TestCase):
         t = template.Template(self.html +
             '{{ 10|currency:"USD" }}'
         )
-        self.assertEqual(t.render(template.Context()), u'15.00')
+        self.assertEqual(t.render(template.Context()), '15.00')
 
     def test_change_currency_tag_success(self):
         t = template.Template(self.html +
             '{% change_currency 10 "USD" %}'
         )
-        self.assertEqual(t.render(template.Context()), u'15.00')
+        self.assertEqual(t.render(template.Context()), '15.00')
 
     # def test_change_currency_tag_failure(self):
     #     t = template.Template(self.html +
     #         '{% change_currency 10 "GPB" %}'
     #     )
-    #     self.assertEqual(t.render(template.Context()), u'0.00')
+    #     self.assertEqual(t.render(template.Context()), '0.00')
