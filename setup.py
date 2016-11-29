@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
+import codecs
 import os
 import re
-import sys
-import codecs
 import subprocess
+import sys
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 from setuptools.command.test import test as TestCommand
 
 
@@ -22,7 +22,8 @@ if 'sdist' in sys.argv or 'develop' in sys.argv:
     os.chdir('currencies')
     try:
         from django.core import management
-        management.call_command('compilemessages', stdout=sys.stderr, verbosity=1)
+        management.call_command(
+            'compilemessages', stdout=sys.stderr, verbosity=1)
     except ImportError:
         if 'sdist' in sys.argv:
             raise
@@ -37,11 +38,17 @@ def read(*parts):
 
 def find_version(*parts):
     version_file = read(*parts)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+    version_match = re.search(
+        r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
     if version_match:
         return str(version_match.group(1))
-    raise RuntimeError("Unable to find version string.")
+    raise RuntimeError('Unable to find version string.')
 
+
+tests_require = []
+
+if sys.version_info < (2, 7):
+    tests_require.append('unittest2')
 
 setup(
     name='django-currencies',
@@ -50,11 +57,11 @@ setup(
 
     install_requires=[
         'django>=1.4.2',
-    ],    
+    ],
     requires=[
         'Django (>=1.4.2)',
     ],
-    
+
     description='Adds support for multiple currencies as a Django application.',
     long_description=read('README.rst'),
 
@@ -70,12 +77,11 @@ setup(
     packages=find_packages(exclude=('example*', '*.tests*')),
     include_package_data=True,
 
-    tests_require=[
-    ],
+    tests_require=tests_require,
     cmdclass={
         'test': TestRunner,
     },
-    
+
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',

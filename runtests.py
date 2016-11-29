@@ -33,7 +33,7 @@ if not settings.configured:
             'django.contrib.sites',
 
             'currencies',
-            'currencies.tests',
+            #'currencies.tests',
         ),
         MIDDLEWARE_CLASSES = (
             'django.middleware.common.CommonMiddleware',
@@ -43,7 +43,7 @@ if not settings.configured:
         ),
         TEST_RUNNER = 'django.test.simple.DjangoTestSuiteRunner' if django.VERSION < (1,6) else 'django.test.runner.DiscoverRunner',
         SITE_ID = 1,
-        ROOT_URLCONF = 'currencies.tests.test_urls',
+        ROOT_URLCONF = 'currencies.tests.urls',
     )
 
 def runtests():
