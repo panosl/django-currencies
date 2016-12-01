@@ -42,3 +42,42 @@ def show_currency(price, code, decimals=2):
 @register.filter(name='currency')
 def do_currency(price, code):
     return calculate(price, code)
+
+
+def memoize_nullary(f):
+    """
+    Memoizes a function that takes no arguments.  The memoization lasts only as
+    long as we hold a reference to the returned function.
+    """
+    def func():
+        if not hasattr(func, 'retval'):
+            func.retval = f()
+        return func.retval
+    return func
+
+def get_currency(arg):
+    try:
+        code = arg()
+    except TypeError:
+        code = arg
+
+    try:
+        return Currency.active.get(code__iexact=code)
+    except Currency.DoesNotExist:
+        return None
+
+
+@register.simple_tag(takes_context=True)
+def currency_context(context):
+    """
+    Use instead of context processor
+    Context variables are only valid within the block scope
+    """
+    request = context['request']
+    currency_code = memoize_nullary(lambda: get_currency_code(request))
+
+    context['CURRENCIES'] = Currency.active.all() # querysets are already lazy
+    context['CURRENCY_CODE'] = currency_code # lazy
+    context['CURRENCY'] = memoize_nullary(lambda: get_currency(currency_code)) # lazy
+
+    return ''

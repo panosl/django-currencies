@@ -33,7 +33,7 @@ Installation
                'south',
            )
 
-3. Be sure you have the ``currencies.context_processors.currencies`` processor:
+3a. Either have the ``currencies.context_processors.currencies`` processor:
 
    .. code-block:: python
 
@@ -41,6 +41,13 @@ Installation
            'django.core.context_processors.request',  # must be enabled
            'currencies.context_processors.currencies',
        )
+
+3b. Or use the template tag ``currency_context``:
+
+   .. code-block:: html+django
+
+       {% load currency %}
+       {% currency_context %}
 
 4. Update your ``urls.py`` file :
 
@@ -172,6 +179,38 @@ or set the ``CURRENCY_CODE`` context variable with a ``POST`` to the included vi
 .. code-block:: html+django
 
     {% url 'currencies_set_currency' [currency_code] %}
+
+or use the template tag ``currency_context``:
+
+.. code-block:: html+django
+
+    {% currency_context %}
+
+which gives the three context variables: ``CURRENCIES``, ``CURRENCY_CODE`` and ``CURRENCY``.
+
+**Template**
+
+Included is a template for a Bootstrap 3 & fontawesome compatible navbar currency
+chooser. The navbar item will display if there are more than 1 active currencies.
+There is a navbar parameter ``dropdown_extra_class`` which is used to supply extra classes
+to the dropdown:
+
+.. code-block:: html+django
+
+    {% block navbar-nav %}
+        ...
+        <ul class="nav navbar-nav navbar-right">
+            ...
+            {% with dropdown_extra_class="collapsed-nav" %}
+            {% include "currencies/navbar/currency-chooser-bs3fa.html" %}
+            {% endwith %}
+
+.. note::
+
+    The currency choice may not be reflected on the navbar if your view is not re-rendered.
+    This may be the case if you are viewing a default page in Django CMS for example.
+    This is due to the context processor not being triggered because the RequestContext
+    is not re-generated.
 
 License
 -------
