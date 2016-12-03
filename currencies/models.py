@@ -3,6 +3,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
+from jsonfield.fields import JSONField
 
 from .managers import CurrencyManager
 
@@ -13,7 +14,7 @@ class Currency(models.Model):
     code = models.CharField(_('code'), max_length=3,
                             primary_key=True)
     name = models.CharField(_('name'), max_length=35,
-                            unique=True, db_index=True)
+                            db_index=True)
     symbol = models.CharField(_('symbol'), max_length=4, blank=True,
                               db_index=True)
     factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10, default=1.0,
@@ -25,6 +26,9 @@ class Currency(models.Model):
         help_text=_('Make this the base currency against which rates are calculated.'))
     is_default = models.BooleanField(_('default'), default=False,
         help_text=_('Make this the default user currency.'))
+
+    # Used to store other available information about a currency
+    info = JSONField(blank=True, default={})
 
     objects = models.Manager()
     active = CurrencyManager()

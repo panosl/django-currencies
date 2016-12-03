@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='currency',
             name='name',
-            field=models.CharField(unique=True, max_length=35, verbose_name='name', db_index=True),
+            field=models.CharField(max_length=35, verbose_name='name', db_index=True),
         ),
         migrations.AlterField(
             model_name='currency',

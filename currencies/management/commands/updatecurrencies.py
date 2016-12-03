@@ -1,64 +1,110 @@
 # -*- coding: utf-8 -*-
-
-from decimal import Decimal as D
-from datetime import datetime as d
-
+from decimal import Decimal
 from django.conf import settings
-from django.core.management.base import NoArgsCommand
-from django.core.exceptions import ImproperlyConfigured
 
-from openexchangerates import OpenExchangeRatesClient
-
-from ...models import Currency as C
-
-APP_ID = getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
-if APP_ID is None:
-    raise ImproperlyConfigured(
-        "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")
+from .currencies import Command as CurrencyCommand
+from ...models import Currency
 
 
-class Command(NoArgsCommand):
-    help = "Update the currencies against the current exchange rates"
+class Command(CurrencyCommand):
+    help = "Update the db currencies with the live exchange rates"
+
+    def add_arguments(self, parser):
+        """Add command arguments"""
+        parser.add_argument(self._source_param, **self._source_kwargs)
+        parser.add_argument('--base', '-b', action='store',
+            help=   'Supply the base currency as code or a settings variable name. '
+                    'The default is taken from settings CURRENCIES_BASE or SHOP_DEFAULT_CURRENCY, '
+                    'or the db, otherwise USD')
+
+    def get_base(self, option):
+        """
+        Parse the base command option. Can be supplied as a 3 character code or a settings variable name
+        If base is not supplied, looks for settings CURRENCIES_BASE and SHOP_DEFAULT_CURRENCY
+        """
+        if isinstance(option, str) and option.isupper():
+            if len(option) == 3:
+                return option, True
+            else:
+                return getattr(settings, option), True
+        else:
+            for attr in ('CURRENCIES_BASE', 'SHOP_DEFAULT_CURRENCY'):
+                try:
+                    return getattr(settings, attr), True
+                except AttributeError:
+                    continue
+            return 'USD', False
 
     def handle(self, *args, **options):
+        """Handle the command"""
+        # get the command arguments
         self.verbose = int(options.get('verbosity', 0))
-        self.options = options
+        base, base_was_arg = self.get_base(options['base'])
 
-        client = OpenExchangeRatesClient(APP_ID)
-        if self.verbose >= 1:
-            self.stdout.write("Querying database at %s" % (client.ENDPOINT_CURRENCIES))
+        # Import the CurrencyHandler and get an instance
+        handler = self.get_handler(options)
 
+        # See if the db already has a base currency
         try:
-            code = C._default_manager.get(is_base=True).code
-        except C.DoesNotExist:
-            code = 'USD'  # fallback to default
+            db_base_obj = Currency._default_manager.get(is_base=True)
+            db_base = db_base_obj.code
+        except Currency.DoesNotExist:
+            db_base = None
 
-        l = client.latest(base=code)
-
-        if self.verbose >= 1 and "timestamp" in l:
-            self.stdout.write("Rates last updated on %s" % (
-                d.fromtimestamp(l["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")))
-
-        if "base" in l:
-            if self.verbose >= 1:
-                self.stdout.write("All currencies based against %s" % (l["base"]))
-
-            if not C._default_manager.filter(code=l["base"]):
+        if db_base and not base_was_arg:
+            base = db_base
+            base_obj = db_base_obj
+            base_in_db = True
+        else:
+            # see if the argument base currency exists in the db
+            try:
+                base_in_db = True
+                base_obj = Currency._default_manager.get(code=base)
+            except Currency.DoesNotExist:
+                base_in_db = False
                 self.stderr.write(
-                    "Base currency %r does not exist! Rates will be erroneous without it." % l["base"])
-            else:
-                base = C._default_manager.get(code=l["base"])
-                base.is_base = True
-                base.save()
+                    "Base currency %r does not exist in the db! Rates will be erroneous without it." % base)
 
-        for c in C._default_manager.all():
-            if c.code not in l["rates"]:
-                self.stderr.write("Could not find rates for %s (%s)" % (c, c.code))
+        if db_base and base_was_arg and base_in_db and (db_base != base):
+            self.info("Changing db base currency from %s to %s" % (db_base, base))
+            db_base_obj.is_base = False
+            db_base_obj.save()
+            base_obj.is_base = True
+            base_obj.save()
+        elif (not db_base) and base_in_db:
+            base_obj.is_base = True
+            base_obj.save()
+
+        self.info("Using %s as base for all currencies" % base)
+        self.info("Getting currency rates from %s" % handler.endpoint)
+
+        obj = None
+        for obj in Currency._default_manager.all():
+            try:
+                rate = handler.get_ratefactor(base, obj.code)
+            except AttributeError:
+                self.stderr.write("This source does not provide currency rate information")
+                return
+            if not rate:
+                self.stderr.write("Could not find rates for %s (%s)" % (obj.name, obj.code))
                 continue
 
-            factor = D(l["rates"][c.code]).quantize(D(".0001"))
-            if c.factor != factor:
-                if self.verbose >= 1:
-                    self.stdout.write("Updating %s rate to %f" % (c, factor))
+            factor = rate.quantize(Decimal(".0001"))
+            if obj.factor != factor:
+                kwargs = {'factor': factor}
+                try:
+                    datetime = handler.get_ratetimestamp(base, obj.code)
+                except AttributeError:
+                    datetime = None
+                if datetime:
+                    obj.info.update({'RateUpdate': datetime.isoformat()})
+                    kwargs['info'] = obj.info
+                    update_str = ", updated at %s" % datetime.strftime("%Y-%m-%d %H:%M:%S")
+                else:
+                    update_str = ""
 
-                C._default_manager.filter(pk=c.pk).update(factor=factor)
+                self.info("Updating %s rate to %f%s" % (obj, factor, update_str))
+
+                Currency._default_manager.filter(pk=obj.pk).update(**kwargs)
+        if not obj:
+            self.stderr.write("No currencies found in the db to update; try the currencies command!")

@@ -57,9 +57,12 @@ setup(
 
     install_requires=[
         'django>=1.4.2',
+        'jsonfield>=1.0.3',
     ],
+
     requires=[
         'Django (>=1.4.2)',
+        'django-jsonfield (>=1.0.3)',
     ],
 
     description='Adds support for multiple currencies as a Django application.',
