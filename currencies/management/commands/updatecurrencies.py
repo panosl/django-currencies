@@ -70,13 +70,13 @@ class Command(BaseCommand):
 
         for c in Currency._default_manager.all():
             if c.code not in l["rates"]:
-                self.stderr.write("Could not find rates for %s (%s)" % (c, c.code))
+                self.stderr.write("Could not find rates for %s (%s)" % (c.name, c.code))
                 continue
 
             factor = D(l["rates"][c.code]).quantize(D(".0001"))
 
             if self.verbose >= 1:
-                self.stdout.write("Updating %s rate to %f" % (c, factor))
+                self.stdout.write("Updating %s (%s) rate to %f" % (c.name, c.code, factor))
 
             exchange_rate = DailyCurrencyExchangeRate.objects\
                 .filter(currency=c)\
