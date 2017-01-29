@@ -21,7 +21,7 @@ sources = OrderedDict([
 class Command(BaseCommand):
     help = "Create all missing db currencies available from the chosen source"
 
-    _package_name = __loader__.name.rsplit('.', 1)[0]
+    _package_name = __name__.rsplit('.', 1)[0]
     _source_param = 'source'
     _source_default = next(iter(sources))
     _source_kwargs = {'action': 'store', 'nargs': '?', 'default': _source_default,
