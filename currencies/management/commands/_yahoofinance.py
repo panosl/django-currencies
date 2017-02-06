@@ -78,8 +78,11 @@ class CurrencyHandler(BaseHandler):
             if match:
                 json_str = match.group(0)
                 with open(self._cached_currency_file, 'w') as fd:
-                    fd.write(json_str)
-
+                    try:
+                        fd.write(json_str)
+                    except UnicodeEncodeError:
+                        fd.write(unicode(json_str).encode('utf-8'))
+                    
         # Parse the json file
         with open(self._cached_currency_file, 'r') as fd:
             j = json.load(fd)
@@ -124,8 +127,8 @@ class CurrencyHandler(BaseHandler):
         longname
         users - a comma separated list of countries/regions/cities that use it
         alternatives - alternative names, e.g. ewro, Quid, Buck
-        symbol - e.g. £, $
-        highlight - ?
+        symbol
+        highlight
         """
         for currency in self.currencies:
             if currency['shortname'] == code:
