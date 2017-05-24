@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from shop import settings as shop_settings
+from shop import app_settings
 from shop.money.fields import MoneyFieldWidget, MoneyFormField, MoneyField as MoneyFieldBase
 from .money_maker import MoneyMaker
 
@@ -7,7 +7,7 @@ from .money_maker import MoneyMaker
 class MoneyField(MoneyFieldBase):
     """Override any calls to the CURRENCIES file. isinstance checks the whole inheritance tree, so is okay"""
     def __init__(self, *args, **kwargs):
-        self.currency_code = kwargs.pop('currency', shop_settings.DEFAULT_CURRENCY)
+        self.currency_code = kwargs.pop('currency', app_settings.DEFAULT_CURRENCY)
         self.Money = MoneyMaker(self.currency_code)
         defaults = {
             'max_digits': 30,

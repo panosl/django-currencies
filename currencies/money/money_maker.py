@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from decimal import Decimal, InvalidOperation
 from currencies.models import Currency
 from currencies.utils import convert
-from shop import settings as shop_settings
+from shop import app_settings
 from shop.money import MoneyMaker as MoneyMakerBase, AbstractMoney as AbstractMoneyBase
 
 """
@@ -37,8 +37,11 @@ class AbstractMoney(AbstractMoneyBase):
 
     def to(self, new_code):
         """Currency conversion method which takes a valid currency code and returns a new currency object"""
-        new_type = MoneyMaker(new_code)
-        amount = convert(self.as_decimal(), self._currency_code, new_type._currency_code, new_type._cents)
+        if self._currency_code == new_code:
+            return self
+
+        new_type = MoneyMaker(new_code, self._active_qs)
+        amount = convert(self.as_decimal(), self._currency_code, new_type._currency_code, new_type._cents, self._active_qs)
         return new_type(amount)
 
     def is_default(self):
@@ -52,7 +55,7 @@ class AbstractMoney(AbstractMoneyBase):
 
 class MoneyMaker(MoneyMakerBase):
     """Enhances the existing MoneyMaker with currency conversion"""
-    def __new__(cls, currency_code=None):
+    def __new__(cls, currency_code=None, qs=None):
         def new_money(cls, value='NaN', context=None):
             """
             Build a class named MoneyIn<currency_code> inheriting from Decimal.
@@ -68,17 +71,20 @@ class MoneyMaker(MoneyMakerBase):
             return self
 
         if currency_code is None:
-            currency_code = shop_settings.DEFAULT_CURRENCY
+            currency_code = app_settings.DEFAULT_CURRENCY
         else:
             currency_code = currency_code.upper()
 
+        if qs is None:
+            qs = Currency.active.all()
+
         try:
-            currency = Currency.active.get(code=currency_code)
+            currency = qs.get(code=currency_code)
         except Currency.DoesNotExist:
             raise ValueError("'{}' is not in the active list of currencies. Have a look in the Currencies section of the admin interface.".format(currency_code))
+
         name = str('MoneyIn' + currency_code)
         bases = (AbstractMoney,)
-
         exp = currency.info['ISO4217Exponent']
         try:
             cents = Decimal('.' + exp * '0')
@@ -95,8 +101,9 @@ class MoneyMaker(MoneyMakerBase):
                     '_currency': currency_vals,
                     '_cents': cents,
                     '__new__': new_money,
-                    # new attribute
-                    '_instance': currency
+                    # new attributes
+                    '_instance': currency,
+                    '_active_qs': qs,
                 }
         new_class = type(name, bases, attrs)
         return new_class
