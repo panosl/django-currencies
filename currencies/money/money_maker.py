@@ -41,7 +41,11 @@ class AbstractMoney(AbstractMoneyBase):
             return self
 
         new_type = MoneyMaker(new_code, self._active_qs)
-        amount = convert(self.as_decimal(), self._currency_code, new_type._currency_code, new_type._cents, self._active_qs)
+        amount = convert(   self.as_decimal(),
+                            self._currency_code,
+                            new_type._currency_code,
+                            decimals=new_type._currency[1],
+                            qs=self._active_qs)
         return new_type(amount)
 
     def is_default(self):
@@ -86,11 +90,6 @@ class MoneyMaker(MoneyMakerBase):
         name = str('MoneyIn' + currency_code)
         bases = (AbstractMoney,)
         exp = currency.info['ISO4217Exponent']
-        try:
-            cents = Decimal('.' + exp * '0')
-        except InvalidOperation:
-            # Currencies with no decimal places, ex. JPY, HUF
-            cents = Decimal()
 
         # original is a 4-tuple of 0 iso number, 1 exponent, 2 symbol & 3 translated name
         currency_vals = (   currency.info['ISO4217Number'],
@@ -99,7 +98,6 @@ class MoneyMaker(MoneyMakerBase):
                             _(currency.name) )
         attrs = {   '_currency_code': currency_code,
                     '_currency': currency_vals,
-                    '_cents': cents,
                     '__new__': new_money,
                     # new attributes
                     '_instance': currency,
