@@ -33,6 +33,11 @@ def change_currency(parser, token):
     return ChangeCurrencyNode(current_price, new_currency)
 
 
+@register.simple_tag
+def show_currency(price, code, decimals=2):
+    return calculate(price, code, decimals=decimals)
+
+
 @stringfilter
 @register.filter(name='currency')
 def do_currency(price, code):
