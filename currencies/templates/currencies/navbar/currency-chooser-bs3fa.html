@@ -1,11 +1,11 @@
 {% load currency %}{% spaceless %}
-{% comment %} Example BS3 FA currency-chooser {% endcomment %}
+{% comment %} Example angular-ui >0.14.0, bootstrap3 & Font Awesome currency-chooser {% endcomment %}
 
 {% currency_context %}
 
 {% if CURRENCIES|length > 1 %}
-<li class="dropdown {{ dropdown_extra_class }}" dropdown>
-    <a class="dropdown-toggle" title="{{ CURRENCY.name }}" dropdown-toggle>
+<li class="dropdown {{ dropdown_extra_class }}" uib-dropdown>
+    <a class="dropdown-toggle" title="{{ CURRENCY.name }}" uib-dropdown-toggle>
         <i class="fa fa-money"></i>&nbsp;{{ CURRENCY_CODE }}&nbsp;<b class="caret"></b>
     </a>
     <ul class="dropdown-menu" role="menu">
