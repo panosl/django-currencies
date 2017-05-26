@@ -235,36 +235,6 @@ to the dropdown:
     This is due to the context processor not being triggered because the RequestContext
     is not re-generated.
 
-Django-SHOP integration
------------------------
-
-The django-SHOP Money system has been extended to use this app as a currency conversion backend.
-To enable this functionality your currencies configuration must satisy the following requirements:
-
-1. ISO4217Exponent and symbol populating using ``manage.py currencies iso``
-   (This automatically imports the currencies set in the SHOP_CURRENCIES setting)
-2. Currency factors populating using ``manage.py updatecurrencies <source>``
-   (This also sets the base currency to SHOP_DEFAULT_CURRENCY)
-3. Some currencies set to active in the admin interface
-
-**Usage**
-
-Use the included Money conversion extension which provides the ``to(code)`` function like so:
-
-.. code-block:: python
-
-    from django.db import models
-    from currencies.utils import get_currency_code
-    from currencies.money.fields import MoneyField
-
-    class MyModel(models.Model):
-        unit_price = MoneyField()
-        ...
-
-        def get_price(self, request):
-            session_currency_code = get_currency_code(request)
-            return self.unit_price.to(session_currency_code)
-
 License
 -------
 
