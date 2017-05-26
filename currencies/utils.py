@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from decimal import Decimal as D, ROUND_UP
+from decimal import Decimal as D, InvalidOperation, ROUND_UP
 from .models import Currency as C
 from .conf import SESSION_KEY
 
