@@ -78,7 +78,7 @@ class CurrencyHandler(BaseHandler):
             if match:
                 json_str = match.group(0)
                 with open(self._cached_currency_file, 'w') as fd:
-                    fd.write(json_str)
+                    fd.write(json_str.encode('utf-8'))
 
         # Parse the json file
         with open(self._cached_currency_file, 'r') as fd:
