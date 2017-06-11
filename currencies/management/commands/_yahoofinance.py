@@ -70,15 +70,18 @@ class CurrencyHandler(BaseHandler):
             # Find the javascript that contains the json object
             soup = BS4(resp.text, 'html.parser')
             re_start = re.compile(start)
-            jscript = soup.find('script', type='text/javascript', text=re_start).string
-
-            # Separate the json object
-            re_json = re.compile(_json)
-            match = re_json.search(jscript)
-            if match:
-                json_str = match.group(0)
-                with open(self._cached_currency_file, 'w') as fd:
-                    fd.write(json_str.encode('utf-8'))
+            try:
+                jscript = soup.find('script', type='text/javascript', text=re_start).string
+            except AttributeError:
+                self.warn("%s: Live currency data not found, using cached copy." % self._name)
+            else:
+                # Separate the json object
+                re_json = re.compile(_json)
+                match = re_json.search(jscript)
+                if match:
+                    json_str = match.group(0)
+                    with open(self._cached_currency_file, 'w') as fd:
+                        fd.write(json_str.encode('utf-8'))
 
         # Parse the json file
         with open(self._cached_currency_file, 'r') as fd:
