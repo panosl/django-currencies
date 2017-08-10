@@ -34,7 +34,7 @@ class BaseHandler(object):
         """Retrieve the currency symbol from the local file"""
         if not self._symbols:
             symbolpath = os.path.join(self._dir, 'currencies.json')
-            with open(symbolpath) as df:
+            with open(symbolpath, encoding='utf8') as df:
                 self._symbols = json.load(df)
         return self._symbols.get(code)
 
