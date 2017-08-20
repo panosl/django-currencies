@@ -39,8 +39,8 @@ class CurrencyHandler(BaseHandler):
         except exceptions.RequestException as e:
             self.warn("%s: Problem whilst contacting endpoint:\n%s" % (self._name, e))
         else:
-            with open(self._cached_currency_file, 'w') as fd:
-                fd.write(resp.text)
+            with open(self._cached_currency_file, 'wb') as fd:
+                fd.write(resp.content)
 
         try:
             root = ET.parse(self._cached_currency_file).getroot()
