@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import sys
+if sys.version_info[0] < 3:
+    from io import open
 import os
 import json
 from decimal import Decimal
