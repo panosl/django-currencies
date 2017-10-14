@@ -23,7 +23,7 @@ def set_currency(request):
     response = HttpResponseRedirect(next)
     if currency_code and Currency.active.filter(code=currency_code).exists():
         # Set cookie irrespective for page cache visibility
-        response.set_cookie(SESSION_KEY, currency_code)
+        response.set_cookie('currency_code', currency_code)
         if hasattr(request, 'session'):
             request.session[SESSION_KEY] = currency_code
     return response
