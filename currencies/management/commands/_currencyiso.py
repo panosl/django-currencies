@@ -26,7 +26,7 @@ class CurrencyHandler(BaseHandler):
 
     @property
     def currencies(self):
-        if not self._currencies:
+        if self._currencies is None:
             self._currencies = self.get_currencies()
             self.published = self._check_doc(self._currencies)
         return self._currencies
