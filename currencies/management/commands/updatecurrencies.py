@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from decimal import Decimal
 from django.conf import settings
 
@@ -38,7 +39,7 @@ class Command(CurrencyCommand):
     def handle(self, *args, **options):
         """Handle the command"""
         # get the command arguments
-        self.verbose = int(options.get('verbosity', 0))
+        self.verbosity = int(options.get('verbosity', 1))
         base, base_was_arg = self.get_base(options['base'])
 
         # Import the CurrencyHandler and get an instance
@@ -62,11 +63,11 @@ class Command(CurrencyCommand):
                 base_obj = Currency._default_manager.get(code=base)
             except Currency.DoesNotExist:
                 base_in_db = False
-                self.stderr.write(
-                    "Base currency %r does not exist in the db! Rates will be erroneous without it." % base)
+                self.log(logging.ERROR,
+                    "Base currency {!r} does not exist in the db! Rates will be erroneous without it.", base)
 
         if db_base and base_was_arg and base_in_db and (db_base != base):
-            self.info("Changing db base currency from %s to %s" % (db_base, base))
+            self.log(logging.INFO, "Changing db base currency from %s to %s", db_base, base)
             db_base_obj.is_base = False
             db_base_obj.save()
             base_obj.is_base = True
@@ -75,18 +76,18 @@ class Command(CurrencyCommand):
             base_obj.is_base = True
             base_obj.save()
 
-        self.info("Using %s as base for all currencies" % base)
-        self.info("Getting currency rates from %s" % handler.endpoint)
+        self.log(logging.INFO, "Using %s as base for all currencies", base)
+        self.log(logging.INFO, "Getting currency rates from %s", handler.endpoint)
 
         obj = None
         for obj in Currency._default_manager.all():
             try:
                 rate = handler.get_ratefactor(base, obj.code)
             except AttributeError:
-                self.stderr.write("This source does not provide currency rate information")
+                self.log(logging.CRITICAL, "%s source does not provide currency rate information", handler.name)
                 return
             if not rate:
-                self.stderr.write("Could not find rates for %s (%s)" % (obj.name, obj.code))
+                self.log(logging.ERROR, "Could not find rate for %r (%s)", obj.name, obj.code)
                 continue
 
             factor = rate.quantize(Decimal(".0001"))
@@ -103,8 +104,8 @@ class Command(CurrencyCommand):
                 else:
                     update_str = ""
 
-                self.info("Updating %s rate to %f%s" % (obj, factor, update_str))
+                self.log(logging.INFO, "Updating %r rate to %s%s", obj.name, factor, update_str)
 
                 Currency._default_manager.filter(pk=obj.pk).update(**kwargs)
         if not obj:
-            self.stderr.write("No currencies found in the db to update; try the currencies command!")
+            self.log(logging.ERROR, "No currencies found in the db to update; try the currencies command!")

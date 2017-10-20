@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import logging
 from xml.etree import ElementTree as ET
 from requests import get, exceptions
 from datetime import datetime
@@ -10,13 +11,14 @@ from ._currencyhandler import BaseHandler
 class CurrencyHandler(BaseHandler):
     """
     Currency Handler implements public API:
+    name
     endpoint
     get_allcurrencycodes()
     get_currencyname(code)
     get_currencysymbol(code)
     get_info(code)
     """
-    _name = 'currency-iso.org'
+    name = 'currency-iso.org'
     endpoint = 'http://www.currency-iso.org/dam/downloads/lists/list_one.xml'
 
     _cached_currency_file = os.path.join(BaseHandler._dir, '_currencyiso.xml')
@@ -37,7 +39,7 @@ class CurrencyHandler(BaseHandler):
             resp = get(self.endpoint)
             resp.raise_for_status()
         except exceptions.RequestException as e:
-            self.warn("%s: Problem whilst contacting endpoint:\n%s" % (self._name, e))
+            self.log(logging.ERROR, "%s: Problem whilst contacting endpoint:\n%s", self.name, e)
         else:
             with open(self._cached_currency_file, 'wb') as fd:
                 fd.write(resp.content)
@@ -45,7 +47,7 @@ class CurrencyHandler(BaseHandler):
         try:
             root = ET.parse(self._cached_currency_file).getroot()
         except FileNotFoundError as e:
-            raise RuntimeError("XML not found at endpoint or as cached file:\n%s" % e)
+            raise RuntimeError("%s: XML not found at endpoint or as cached file:\n%s" % (self.name, e))
 
         return root
 
@@ -58,7 +60,7 @@ class CurrencyHandler(BaseHandler):
             # Actual length in Oct 2016: 279
             len(root[0]) < 270):
 
-            raise TypeError("XML {} appears to be invalid".format(self._cached_currency_file))
+            raise TypeError("%s: XML %s appears to be invalid" % (self.name, self._cached_currency_file))
 
         return datetime.strptime(root.attrib['Pblshd'], '%Y-%m-%d').date()
 
@@ -94,7 +96,7 @@ class CurrencyHandler(BaseHandler):
             yield currency
 
         if missing:
-            raise RuntimeError("%s: %s not found" % (self._name, code))
+            raise RuntimeError("%s: %s not found" % (self.name, code))
 
     def get_currencyname(self, code):
         """Return the currency name from the code"""

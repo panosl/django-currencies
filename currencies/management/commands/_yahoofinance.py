@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys, re, json, os
+import logging
 # requires beautifulsoup4 and requests
 from bs4 import BeautifulSoup as BS4
 from requests import get, exceptions
@@ -12,6 +13,7 @@ from ._currencyhandler import BaseHandler
 class CurrencyHandler(BaseHandler):
     """
     Currency Handler implements public API:
+    name
     endpoint
     get_allcurrencycodes()
     get_currencyname(code)
@@ -20,7 +22,7 @@ class CurrencyHandler(BaseHandler):
     get_ratetimestamp(base, code)
     get_ratefactor(base, code)
     """
-    _name = 'YahooFinance'
+    name = 'Yahoo Finance'
     endpoint = 'http://finance.yahoo.com'
     onerate_url = 'http://finance.yahoo.com/d/quotes.csv?s=%s%s=X&f=l1'
     full_url = 'http://uk.finance.yahoo.com/webservice/v1/symbols/allcurrencies/quote;currency=true?view=basic&format=json&callback=YAHOO.Finance.CurrencyConverter.addConversionRates'
@@ -65,7 +67,7 @@ class CurrencyHandler(BaseHandler):
             resp = get(self.currencies_url)
             resp.raise_for_status()
         except exceptions.RequestException as e:
-            self.warn("%s: Problem whilst contacting endpoint:\n%s" % (self._name, e))
+            self.log(logging.ERROR, "%s: Problem whilst contacting endpoint:\n%s", self.name, e)
         else:
             # Find the javascript that contains the json object
             soup = BS4(resp.text, 'html.parser')
@@ -73,7 +75,7 @@ class CurrencyHandler(BaseHandler):
             try:
                 jscript = soup.find('script', type='text/javascript', text=re_start).string
             except AttributeError:
-                self.warn("%s: Live currency data not found, using cached copy." % self._name)
+                self.log(logging.WARNING, "%s: Live currency data not found, using cached copy.", self.name)
             else:
                 # Separate the json object
                 re_json = re.compile(_json)
@@ -87,7 +89,8 @@ class CurrencyHandler(BaseHandler):
         with open(self._cached_currency_file, 'r') as fd:
             j = json.load(fd)
         if not j:
-            raise RuntimeError("JSON not found at endpoint or as cached file:\n%s" % self._cached_currency_file)
+            raise RuntimeError("%s: JSON not found at endpoint or as cached file:\n%s" % (
+                self.name, self._cached_currency_file))
         return j
 
     def get_bulkrates(self):
@@ -106,7 +109,7 @@ class CurrencyHandler(BaseHandler):
             resp = get(url)
             resp.raise_for_status()
         except exceptions.HTTPError as e:
-            self.warn("%s: problem with %s:\n%s" % (self._name, url, e))
+            self.log(logging.ERROR, "%s: problem with %s:\n%s", self.name, url, e)
             return None
         rate = resp.text.rstrip()
 
@@ -133,7 +136,7 @@ class CurrencyHandler(BaseHandler):
         for currency in self.currencies:
             if currency['shortname'] == code:
                 return currency
-        raise RuntimeError("%s: %s not found" % (self._name, code))
+        raise RuntimeError("%s: %s not found" % (self.name, code))
 
     def get_currencyname(self, code):
         """Return the currency name from the code"""
@@ -171,7 +174,7 @@ class CurrencyHandler(BaseHandler):
             rateobj = rate['resource']['fields']
             if rateobj['symbol'].startswith(code):
                 return rateobj
-        raise RuntimeError("%s: %s not found" % (self._name, code))
+        raise RuntimeError("%s: %s not found" % (self.name, code))
 
     def get_baserate(self):
         """Helper function to populate the base rate"""
@@ -180,7 +183,7 @@ class CurrencyHandler(BaseHandler):
             rateobj = rate['resource']['fields']
             if rateobj['symbol'].partition('=')[0] == rateobj['name']:
                 return rateobj['name']
-        raise RuntimeError("%s: baserate not found" % self._name)
+        raise RuntimeError("%s: baserate not found" % self.name)
 
     def get_ratetimestamp(self, base, code):
         """Return rate timestamp as a datetime/date or None"""
@@ -196,15 +199,15 @@ class CurrencyHandler(BaseHandler):
         if split[1]:
             ratebase = split[0]
             if ratebase != self.base:
-                raise RuntimeError("%s: %s has different base rate:\n%s"
-                    % (self._name, ratebase, rate))
+                raise RuntimeError("%s: %s has different base rate:\n%s" % (
+                    self.name, ratebase, rate))
         elif rate['name'] == self.base:
             pass
         # Codes beginning with 'X' are treated specially, e.g.
         # Gold (XAU), Copper (XCP), Palladium (XPD), Platinum (XPT), Silver (XAG)
         # They still appear to be based on USD but are reported with no base
         elif not rate['symbol'].startswith('X'):
-            self.warn("%s: currency found with no base:\n%s" % (self._name, rate))
+            self.log(logging.WARNING, "%s: currency found with no base:\n%s", self.name, rate)
 
 
     def get_ratefactor(self, base, code):

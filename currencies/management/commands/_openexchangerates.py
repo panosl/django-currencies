@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from datetime import datetime
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -9,12 +10,14 @@ from ._currencyhandler import BaseHandler
 class CurrencyHandler(BaseHandler):
     """
     Currency Handler implements public API:
+    name
     endpoint
     get_allcurrencycodes()
     get_currencyname(code)
     get_ratetimestamp(base, code)
     get_ratefactor(base, code)
     """
+    name = 'Open Exchange Rates'
 
     def __init__(self, *args):
         """Override the init to check for the APP_ID"""
@@ -46,9 +49,9 @@ class CurrencyHandler(BaseHandler):
         """Local helper function for validating rates response"""
 
         if "rates" not in rates:
-            raise RuntimeError("OpenExchangeRates: 'rates' not found in results")
+            raise RuntimeError("%s: 'rates' not found in results" % self.name)
         if "base" not in rates or rates["base"] != base or base not in rates["rates"]:
-            self.warn("OpenExchangeRates: 'base' not found in results")
+            self.log(logging.WARNING, "%s: 'base' not found in results", self.name)
         self.rates = rates
 
     rates = None

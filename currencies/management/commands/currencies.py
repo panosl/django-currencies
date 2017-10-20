@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from collections import OrderedDict
 from importlib import import_module
 from django.conf import settings
@@ -16,6 +17,9 @@ sources = OrderedDict([
     #('google', '._googlecalculator.py'),
     #('ecb', '._europeancentralbank.py'),
 ])
+
+
+logger = logging.getLogger("django.currencies")
 
 
 class Command(BaseCommand):
@@ -49,36 +53,57 @@ class Command(BaseCommand):
                     return getattr(settings, attr)
                 except AttributeError:
                     continue
-            self.stderr.write("Importing all. Some currencies may be out-of-date (MTL) or spurious (XPD)")
             return option
         elif len(option) == 1 and option[0].isupper() and len(option[0]) != 3:
             return getattr(settings, option[0])
         else:
             return [e for e in option if e]
 
-    verbose = 0
-    def info(self, msg):
-        """Only print if verbose >= 1"""
-        if self.verbose:
-            self.stdout.write(msg)
+    @property
+    def verbosity(self):
+        return getattr(self, '_verbosity', logging.INFO)
+
+    @verbosity.setter
+    def verbosity(self, value):
+        self._verbosity = {
+            0: logging.ERROR,
+            1: logging.INFO,
+            2: logging.DEBUG,
+            3: 0
+        }.get(value)
+
+    def log(self, lvl, msg, *args, **kwargs):
+        """Both prints to stdout/stderr and the django.currencies logger"""
+        logger.log(lvl, msg, *args, **kwargs)
+
+        if lvl >= self.verbosity:
+            if args:
+                fmsg = msg % args
+            else:
+                fmsg = msg % kwargs
+
+            if lvl >= logging.WARNING:
+                self.stderr.write(fmsg)
+            else:
+                self.stdout.write(fmsg)
 
     def get_handler(self, options):
         """Return the specified handler"""
         # Import the CurrencyHandler and get an instance
         handler_module = import_module(sources[options[self._source_param]], self._package_name)
-        return handler_module.CurrencyHandler(self.info, self.stderr.write)
+        return handler_module.CurrencyHandler(self.log)
 
     def handle(self, *args, **options):
         """Handle the command"""
         # get the command arguments
-        self.verbose = int(options.get('verbosity', 0))
+        self.verbosity = int(options.get('verbosity', 1))
         force = options['force']
         imports = self.get_imports(options['import'])
 
         # Import the CurrencyHandler and get an instance
         handler = self.get_handler(options)
 
-        self.info("Getting currency data from %s" % handler.endpoint)
+        self.log(logging.INFO, "Getting currency data from %s", handler.endpoint)
 
         # find available codes
         if imports:
@@ -87,6 +112,7 @@ class Command(BaseCommand):
             available = reqcodes & allcodes
             unavailable = reqcodes - allcodes
         else:
+            self.log(logging.WARNING, "Importing all. Some currencies may be out-of-date (MTL) or spurious (XPD)")
             available = handler.get_allcurrencycodes()
             unavailable = None
 
@@ -98,9 +124,10 @@ class Command(BaseCommand):
                 kwargs = {}
                 if created:
                     kwargs['is_active'] = False
-                    self.info("Creating %s" % description)
+                    msg = "Creating %s"
                 else:
-                    self.info("Updating %s" % description)
+                    msg = "Updating %s"
+
                 if name:
                     kwargs['name'] = name
                 symbol = handler.get_currencysymbol(code)
@@ -115,10 +142,11 @@ class Command(BaseCommand):
                         obj.info.update(infodict)
                         kwargs['info'] = obj.info
 
+                self.log(logging.INFO, msg, description)
                 Currency._default_manager.filter(pk=obj.pk).update(**kwargs)
-
             else:
-                self.info("Skipping %s" % description)
+                msg = "Skipping %s"
+                self.log(logging.INFO, msg, description)
 
         if unavailable:
-            self.stderr.write("Currencies %s not found in source." % unavailable)
+            self.log(logging.WARNING, "Currencies %s not found in source.", unavailable)
