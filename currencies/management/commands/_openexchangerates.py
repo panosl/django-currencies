@@ -86,12 +86,12 @@ class CurrencyHandler(BaseHandler):
             return None
 
     def get_ratefactor(self, base, code):
-        """Return the Decimal currency exchange rate factor of 'code' compared to 1 'base' unit, or None"""
+        """Return the Decimal currency exchange rate factor of 'code' compared to 1 'base' unit, or RuntimeError"""
         self.get_latestcurrencyrates(base)
         try:
             ratefactor = self.rates["rates"][code]
         except KeyError:
-            return None
+            raise RuntimeError("%s: %s not found" % (self.name, code))
 
         if base == self.base:
             return ratefactor

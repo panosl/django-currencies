@@ -212,7 +212,7 @@ class CurrencyHandler(BaseHandler):
 
     def get_ratefactor(self, base, code):
         """
-        Return the Decimal currency exchange rate factor of 'code' compared to 1 'base' unit, or None
+        Return the Decimal currency exchange rate factor of 'code' compared to 1 'base' unit, or RuntimeError
         Yahoo currently uses USD as base currency, but here we detect it with get_baserate
         """
         try:

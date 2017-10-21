@@ -86,9 +86,9 @@ class Command(CurrencyCommand):
             except AttributeError:
                 self.log(logging.CRITICAL, "%s source does not provide currency rate information", handler.name)
                 return
-            if not rate:
-                self.log(logging.ERROR, "Could not find rate for %r (%s)", obj.name, obj.code)
-                continue
+            except RuntimeError as e:
+                self.log(logging.ERROR, str(e))
+                return
 
             factor = rate.quantize(Decimal(".0001"))
             if obj.factor != factor:
