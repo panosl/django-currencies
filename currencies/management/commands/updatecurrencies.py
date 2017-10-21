@@ -64,7 +64,7 @@ class Command(CurrencyCommand):
             except Currency.DoesNotExist:
                 base_in_db = False
                 self.log(logging.ERROR,
-                    "Base currency {!r} does not exist in the db! Rates will be erroneous without it.", base)
+                    "Base currency %r does not exist in the db! Rates will be erroneous without it.", base)
 
         if db_base and base_was_arg and base_in_db and (db_base != base):
             self.log(logging.INFO, "Changing db base currency from %s to %s", db_base, base)
