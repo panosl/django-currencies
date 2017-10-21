@@ -149,4 +149,4 @@ class Command(BaseCommand):
                 self.log(logging.INFO, msg, description)
 
         if unavailable:
-            self.log(logging.ERROR, "Currencies %s not found in source.", unavailable)
+            self.log(logging.ERROR, "Currencies %s not found in %s source", unavailable, handler.name)
