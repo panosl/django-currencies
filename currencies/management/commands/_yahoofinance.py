@@ -114,7 +114,7 @@ class CurrencyHandler(BaseHandler):
         rate = resp.text.rstrip()
 
         if rate == 'N/A':
-            return None
+            raise RuntimeError("%s: %s not found" % (self.name, code))
         else:
             return Decimal(rate)
 
