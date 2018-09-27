@@ -12,11 +12,11 @@ from .managers import CurrencyManager
 class Currency(models.Model):
 
     code = models.CharField(_('code'), max_length=3,
-                            unique=True, db_index=True)
+                            primary_key=True)
     name = models.CharField(_('name'), max_length=35,
                             db_index=True)
     symbol = models.CharField(_('symbol'), max_length=4, blank=True,
-                              db_index=True)
+                            db_index=True)
     factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10, default=1.0,
         help_text=_('Specifies the difference of the currency to default one.'))
 
