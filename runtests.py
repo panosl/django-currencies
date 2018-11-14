@@ -25,7 +25,7 @@ if not settings.configured:
         ),
         TEMPLATE_CONTEXT_PROCESSORS = tuple(global_settings.TEMPLATE_CONTEXT_PROCESSORS) + (
             'django.core.context_processors.request',
-        ),
+        ) if django.VERSION < (1,10) else None,
         INSTALLED_APPS = (
             'django.contrib.auth',
             'django.contrib.contenttypes',

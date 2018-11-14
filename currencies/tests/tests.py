@@ -3,14 +3,23 @@ from __future__ import unicode_literals
 from decimal import Decimal
 
 from django import template
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from currencies.models import Currency
 from currencies.utils import calculate
 
+settings = {
+    'TEMPLATES': [
+        {
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        },
+    ]
+}
 
+
+@override_settings( **settings )
 class UtilsTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['currencies_test']
     use_transaction = False
 
     def test_calculate_price_success(self):
@@ -30,8 +39,9 @@ class UtilsTest(TestCase):
             Currency.DoesNotExist, calculate, '10', 'GBP')
 
 
+@override_settings( **settings )
 class TemplateTagTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['currencies_test']
     use_transaction = False
 
     html = """{% load currency %}"""
