@@ -1,6 +1,10 @@
 django-currencies
 =================
 
+.. image:: https://travis-ci.org/panosl/django-currencies.svg?branch=master
+    :target: https://travis-ci.org/panosl/django-currencies
+
+
 django-currencies allows you to define different currencies, and
 includes template tags/filters to allow easy conversion between them.
 
