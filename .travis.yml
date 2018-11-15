@@ -6,7 +6,6 @@ python:
   - "2.7"
   - "pypy"
 env:
-  - DJANGO_VERSION=1.4.22
   - DJANGO_VERSION=1.8
   - DJANGO_VERSION=1.11
   - DJANGO_VERSION=2.0
@@ -19,12 +18,6 @@ script:
   - python setup.py test
 matrix:
   exclude:
-    - python: "pypy3"
-      env: DJANGO_VERSION=1.4.22
-    - python: "3.6"
-      env: DJANGO_VERSION=1.4.22
-    - python: "3.5"
-      env: DJANGO_VERSION=1.4.22
     - python: "3.6"
       env: DJANGO_VERSION=1.8
     - python: "pypy"
