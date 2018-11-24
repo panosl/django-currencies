@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+from datetime import datetime
 from decimal import Decimal
 from django.conf import settings
 
@@ -78,6 +79,7 @@ class Command(CurrencyCommand):
 
         self.log(logging.INFO, "Using %s as base for all currencies", base)
         self.log(logging.INFO, "Getting currency rates from %s", handler.endpoint)
+        timestamp = datetime.now().isoformat()
 
         obj = None
         for obj in Currency._default_manager.all():
@@ -94,15 +96,17 @@ class Command(CurrencyCommand):
             if obj.factor != factor:
                 kwargs = {'factor': factor}
                 try:
-                    datetime = handler.get_ratetimestamp(base, obj.code)
+                    ratetimestamp = handler.get_ratetimestamp(base, obj.code)
                 except AttributeError:
-                    datetime = None
-                if datetime:
-                    obj.info.update({'RateUpdate': datetime.isoformat()})
-                    kwargs['info'] = obj.info
-                    update_str = ", updated at %s" % datetime.strftime("%Y-%m-%d %H:%M:%S")
+                    ratetimestamp = None
+                if ratetimestamp:
+                    obj.info.update( {'RateUpdate': ratetimestamp.isoformat()} )
+                    update_str = ", source timestamp %s" % ratetimestamp.strftime("%Y-%m-%d %H:%M:%S")
                 else:
                     update_str = ""
+
+                obj.info.update( {'RateModified': timestamp} )
+                kwargs['info'] = obj.info
 
                 self.log(logging.INFO, "Updating %r rate to %s%s", obj.name, factor, update_str)
 

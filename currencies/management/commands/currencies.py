@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+from datetime import datetime
 from collections import OrderedDict
 from importlib import import_module
 from django.conf import settings
@@ -104,6 +105,7 @@ class Command(BaseCommand):
         handler = self.get_handler(options)
 
         self.log(logging.INFO, "Getting currency data from %s", handler.endpoint)
+        timestamp = datetime.now().isoformat()
 
         # find available codes
         if imports:
@@ -125,22 +127,24 @@ class Command(BaseCommand):
                 if created:
                     kwargs['is_active'] = False
                     msg = "Creating %s"
+                    obj.info.update( {'Created': timestamp} )
                 else:
                     msg = "Updating %s"
+                obj.info.update( {'Modified': timestamp} )
 
                 if name:
                     kwargs['name'] = name
+
                 symbol = handler.get_currencysymbol(code)
                 if symbol:
                     kwargs['symbol'] = symbol
+
                 try:
-                    infodict = handler.get_info(code)
+                    obj.info.update(handler.get_info(code))
                 except AttributeError:
                     pass
-                else:
-                    if infodict:
-                        obj.info.update(infodict)
-                        kwargs['info'] = obj.info
+
+                kwargs['info'] = obj.info
 
                 self.log(logging.INFO, msg, description)
                 Currency._default_manager.filter(pk=obj.pk).update(**kwargs)
