@@ -93,9 +93,10 @@ django-currencies has built-in integration with
 
 You can use the management commands ``currencies`` and ``updatecurrencies``
 to maintain the currencies in the database. The former will import any
-currencies that are defined on the selected source. The latter will update
-all the database currencies against the rates returned by the source. Any
-currency missing on the source will be left untouched.
+currencies that are defined on the selected source into the database.
+This includes information like the currency code, name, symbol, and any
+other info provided. The latter will update all the database currency
+rates from the source. Any currency missing on the source will be untouched.
 
 You can selectively import currencies, for example the commands below
 will import USD and EUR currencies only, or use a variable from the
@@ -139,6 +140,11 @@ is integrated due to abandoned project)
 
 **Yahoo Finance**
 
+.. attention::
+
+    Yahoo integration is now deprecated due to withdrawal of the service around 6 Feb 2018 due to purchase by Verizon.
+    The cached currency json file will continue to be available through the ``currencies`` command however.
+
 Select this source by specifying ``yahoo`` as positional argument.
 
 Requirements: `BeautifulSoup4 <https://www.crummy.com/software/BeautifulSoup/bs4/doc/>`_
@@ -150,17 +156,24 @@ Select this source by specifying ``iso`` as positional argument.
 
 Requirements: `requests <http://docs.python-requests.org/en/master/>`_
 
-===========  ==========  =====  =======  ==========
-Integration               Live Feeds
------------  --------------------------------------
-..           Currencies  Rates  Symbols  Other Info
-===========  ==========  =====  =======  ==========
-    oxr          |T|      |T|
-   yahoo         |T|      |T|     |T|       |T|
-    iso          |T|              |T|       |T|
-===========  ==========  =====  =======  ==========
+===========  ==========  ==========  ==========  ==========
+Integration                    Live Feeds                  
+-----------  ----------------------------------------------
+..           Currencies    Rates       Symbols   Other Info
+===========  ==========  ==========  ==========  ==========
+    oxr          |T|         |T|                           
+   yahoo         |T|    |ss| |T| |se|    |T|         |T|   
+    iso          |T|                                 |T|   
+===========  ==========  ==========  ==========  ==========
 
 .. |T| unicode:: U+2705 .. ticked
+.. |ss| raw:: html
+
+    <strike>
+
+.. |se| raw:: html
+
+    </strike>
 
 Other info includes ISO4217 number and exponent, country and city names, and alternative
 currency names.
@@ -232,7 +245,7 @@ to the dropdown:
             {% include "currencies/navbar/currency-chooser-bs3fa.html" %}
             {% endwith %}
 
-.. note::
+.. attention::
 
     The currency choice may not be reflected on the navbar if your view is not re-rendered.
     This may be the case if you are viewing a default page in Django CMS for example.

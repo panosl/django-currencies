@@ -15,7 +15,6 @@ class CurrencyHandler(BaseHandler):
     endpoint
     get_allcurrencycodes()
     get_currencyname(code)
-    get_currencysymbol(code)
     get_info(code)
     """
     name = 'currency-iso.org'
