@@ -5,6 +5,7 @@ python:
   - "pypy3"
   - "2.7"
   - "pypy"
+sudo: false
 env:
   - DJANGO_VERSION=1.8
   - DJANGO_VERSION=1.11
@@ -16,6 +17,8 @@ install:
   - python setup.py develop
 script:
   - python setup.py test
+after_success:
+  - codecov -e DJANGO_VERSION
 matrix:
   exclude:
     - python: "3.6"

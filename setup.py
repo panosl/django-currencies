@@ -49,14 +49,10 @@ setup(
     license='BSD License',
 
     install_requires=[
-        'django>=1.4.2',
+        'django>=1.8',
         'jsonfield>=1.0.3',
-    ],    
-    #requires=[
-    #    'Django (>=1.4.2)',
-    #    'django-jsonfield (>=1.0.3)',
-    #],
-    
+    ],
+
     description='Adds support for multiple currencies as a Django application.',
     long_description=read('README.rst'),
 
@@ -73,11 +69,13 @@ setup(
     include_package_data=True,
 
     tests_require=[
+        HTTPretty,
+        codecov,
     ],
     cmdclass={
         'test': TestRunner,
     },
-    
+
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -90,7 +88,7 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
