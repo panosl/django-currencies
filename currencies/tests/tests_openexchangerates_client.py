@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from httpretty import HTTPretty, httprettified
 
-from . import _openexchangerates_client as openexchangerates
+from currencies.management.commands import _openexchangerates_client as openexchangerates
 
 from datetime import date as Date
 
