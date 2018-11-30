@@ -1,22 +1,12 @@
 """
-Updatecurrencies tests:
-Positive:
-    update all: no base & no variables & db base unset | ditto, db base set | -base GBP
-    change base with default setting variables CURRENCIES_BASE (1) & SHOP_DEFAULT_CURRENCY (2): 1 | 2 | both
-    change base with
-Negative:
-    No APP_ID
-    No connectivity
-    Source down
-    Base variable which does not exist
-    Empty base switch
-    Unavailable currency
+Various test cases for the `currencies` and `updatecurrencies` management commands
 """
 from __future__ import unicode_literals
 import re
 from decimal import Decimal
 from datetime import datetime, timedelta
 from functools import wraps
+from unittest.mock import patch, Mock
 from django import template
 from django.test import TestCase, override_settings
 from django.core.management import call_command
@@ -40,12 +30,15 @@ def fromisoformat(s):
 
 
 class BaseTestMixin(object):
-    "Base test suite mixin"
+    "Test suite for functionality supported by all sources"
     source_arg = []
 
     _code_0dp = 'JPY'
+    _symb_0dp = '' #TODO
     _code_2dp = 'GBP'
+    _symb_2dp = ''
     _code_3dp = 'KWD'
+    _symb_3dp = ''
     _newcodes = [_code_0dp, _code_2dp, _code_3dp]
     _code_exist = 'USD'
     _now_delta = timedelta(seconds=1)
@@ -58,6 +51,28 @@ class BaseTestMixin(object):
         output = buf.getvalue().splitlines()
         buf.close()
         self.assertGreaterEqual(len(output), min_lines)
+        return output
+
+    def default_currency_cmd(self):
+        "Single currency import that is reused for a lot of basic tests"
+        self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=' + self._code_2dp)
+
+    def default_rate_cmd(self):
+        "Rate update command that is reused for a lot of basic tests. Uses the base from the db"
+        self.run_cmd_verify_stdout(6, 'updatecurrencies', *self.source_arg)
+
+    def _verify_stdout_msg(msglist):
+        "Ensure one of the messages is in the command stdout"
+        def decorator(func):
+            @wraps(func)
+            def wrapper(inst, *args, **kwargs):
+                output = '\n'.join(func(inst, *args, *kwargs))
+                match = False
+                for msg in msglist:
+                    match = match or (msg in output)
+                inst.assertIs(match, True)
+            return wrapper
+        return decorator
 
     def _verify_new_currencies(func):
         """
@@ -105,7 +120,6 @@ class BaseTestMixin(object):
 
     ### TESTS FOR SOURCES THAT SUPPORT IMPORTING NEW CURRENCIES ###
     ## POSITIVE Tests ##
-    # Info: Minimal tests that all sources support must start with 'test' here
     @_verify_new_currencies
     def test_import_all_currencies_bydefault(self):
         "No parameters imports all currencies"
@@ -186,13 +200,15 @@ class BaseTestMixin(object):
         self.assertNotEqual(before.info, after.info)
         self.assertAlmostEqual(runtime, fromisoformat(after.info['Modified']), delta=self._now_delta)
 
+
     ## NEGATIVE Tests ##
-#    No APP_ID
-#    No connectivity
-#    Source down with | without cache
+
 #    Import variable which does not exist
 #    Empty import switch
 #    Unavailable currency
+
+
+
 #class IncSymbolsMixin(object):
     #def inc_symbols(self):
 #class ExcSymbolsMixin(object):
@@ -201,20 +217,78 @@ class BaseTestMixin(object):
     #def inc_info(self):
 #class ExcInfoMixin(object):
     #def exc_info(self):
-#class IncRatesMixin(object):
-#    "For sources that support exchange rates"
-    #def inc_rates(self):
-#class ExcRatesMixin(object):
-#    "For sources that do not support exchange rates"
-    #def exc_rates(self):
+#TODO
+class IncRatesMixin(object):
+    "For sources that support exchange rates"
+
+    ## POSITIVE Tests ##
+    def test_update_rates_nobase(self):
+        "Update currency rates without supplying a base at all - USD"
+        self.default_rate_cmd()
+
+    def test_update_rates_dbbase(self):
+        "Update currency rates with the db base"
+        self.default_rate_cmd()
+
+    def test_update_rates_specifybase(self):
+        "Update currency rates with a specific base"
+        self.run_cmd_verify_stdout(6, 'updatecurrencies', *self.source_arg, '--base=' + self._code_exist)
+
+#    def test_update_rates_variable_CURRENCIES_BASE(self):
+#        "Update currency rates using the CURRENCIES_BASE setting variable"
+
+#    def test_update_rates_variable_SHOP_DEFAULT_CURRENCY(self):
+#        "Update currency rates using the SHOP_DEFAULT_CURRENCY setting variable"
+
+#    def test_update_rates_variable_BOTH(self):
+#        "Update currency rates with both builtin setting variables"
+
+#    def test_update_rates_variable_WIBBLE(self):
+#        "Update currency rates using the WIBBLE setting variable"
+#    update all: no base & no variables & db base unset | ditto, db base set | -base GBP
+#    change base with default setting variables CURRENCIES_BASE (1) & SHOP_DEFAULT_CURRENCY (2): 1 | 2 | both
+
+    ## NEGATIVE Tests ##
+#    No APP_ID
+#    No connectivity
+#    Source down
+#    Base variable which does not exist
+#    Empty base switch
+#    Specific base which does not exist in the db
+#    Unavailable currency
+
+class ExcRatesMixin(object):
+    "For sources that do not support exchange rates"
+
+    @BaseTestMixin._verify_stdout_msg(['source does not provide currency rate information', 'Deprecated'])
+    def test_update_rates(self):
+        "Rates not supported"
+        self.default_rate_cmd()
 
 
+### ACTUAL TEST CLASSES ###
 
 @override_settings( **default_settings )
-class DefaultTest(TestCase, BaseTestMixin):
+class DefaultTest(IncRatesMixin, BaseTestMixin, TestCase):
     "Test Openexchangerates support: the default source"
     fixtures = ['currencies_test']
 
+    @override_settings()
+    def test_missing_APP_ID(self):
+        "No APP_ID"
+        from django.conf import settings
+        from django.core.exceptions import ImproperlyConfigured
+        del settings.OPENEXCHANGERATES_APP_ID
+        self.assertRaises(ImproperlyConfigured, self.default_currency_cmd)
+
+    @patch('requests.Session')
+    def test_no_connectivity(self, mock_Session):
+        "Simulate connection problem"
+        from requests.exceptions import RequestException
+        from currencies.management.commands._openexchangerates_client import OpenExchangeRatesClientException
+        sessInst = mock_Session.return_value
+        sessInst.get = Mock(side_effect=RequestException('Mocked Exception'))
+        self.assertRaises(OpenExchangeRatesClientException, self.default_currency_cmd)
 
 class OpenExchangeRatesTest(DefaultTest):
     "Test Openexchangerates support: when specified"
@@ -222,14 +296,35 @@ class OpenExchangeRatesTest(DefaultTest):
 
 
 @override_settings( **default_settings )
-class YahooTest(TestCase, BaseTestMixin):
+class YahooTest(ExcRatesMixin, BaseTestMixin, TestCase):
     "Test Yahoo support"
     fixtures = ['currencies_test']
     source_arg = ['yahoo']
 
+    @patch('currencies.management.commands._yahoofinance.get')
+    def test_no_connectivity(self, mock_get):
+        "Simulate connection problem - imports from cache"
+        from requests.exceptions import RequestException
+        mock_get.side_effect = RequestException('Mocked Exception')
+        self.test_import_single_currency_short()
+
+    @patch('currencies.management.commands._yahoofinance.CurrencyHandler._cached_currency_file', 'wibble.json')
+    def test_no_cache(self):
+        "Simulate no cache file - API withdrawn so will raise exception"
+        self.assertRaises(RuntimeError, self.test_import_single_currency_short)
+
+    @patch('currencies.management.commands._yahoofinance.CurrencyHandler._cached_currency_file', 'wibble.json')
+    @patch('currencies.management.commands._yahoofinance.get')
+    def test_no_connectivity_or_cache(self, mock_get):
+        "Simulate connection problem & no cache - exception"
+        from requests.exceptions import RequestException
+        mock_get.side_effect = RequestException('Mocked Exception')
+        self.assertRaises(RuntimeError, self.test_import_single_currency_short)
+
 
 @override_settings( **default_settings )
-class ISOTest(TestCase, BaseTestMixin):
+class ISOTest(BaseTestMixin, TestCase):
     "Test Currency ISO support"
     fixtures = ['currencies_test']
     source_arg = ['iso']
+
