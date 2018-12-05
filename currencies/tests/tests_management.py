@@ -138,21 +138,6 @@ class BaseTestMixin(object):
             return wrapper
         return decorator
 
-    def _verify_rates(base_code):
-        "Wrapper for testing that the rates are not 1.0 after an update"
-        def decorator(func):
-            @wraps(func)
-            def wrapper(inst, *args, **kwargs):
-                inst.assertGreater(Currency.objects.update(factor=1.0), 1)
-                ret = func(inst, *args, **kwargs)
-                after_qs = Currency.objects.all()
-                for curr in after_qs.filter(is_base=False):
-                    inst.assertNotEqual(curr.factor, 1.0)
-                inst.assertEqual(after_qs.get(code=base_code, is_base=True).factor, 1.0)
-                return ret
-            return wrapper
-        return decorator
-
     def _move_cache_file(modulename):
         "Wrapper for testing the currency cache file. Keeps the newest file with size>0"
         def decorator(func):
@@ -309,44 +294,83 @@ def mock_requestget_exception():
     mockget.side_effect = RequestException('Mocked Exception')
     return mockget
 
-@patch('requests.Session', mock_requestsession_getjson('%s/oxr_USD.json' % cwd))
+
+@patch('currencies.management.commands._openexchangerates_client.requests.Session',
+    mock_requestsession_getjson('%s/oxr_USD.json' % cwd))
 class IncRatesMixin(object):
     "For sources that support exchange rates"
 
+    def _verify_rates(base_code):
+        "Wrapper for testing that the rates are not 1.0 after an update and the specified base is set"
+        def decorator(func):
+            @wraps(func)
+            def wrapper(inst, *args, **kwargs):
+                inst.assertGreater(Currency.objects.update(factor=1.0), 1)
+                ret = func(inst, *args, **kwargs)
+                after_qs = Currency.objects.all()
+                for curr in after_qs.filter(is_base=False):
+                    inst.assertNotEqual(curr.factor, 1.0)
+                inst.assertEqual(after_qs.get(code=base_code, is_base=True).factor, 1.0)
+                return ret
+            return wrapper
+        return decorator
+
+    def _verify_rate_change(func):
+        "Wrapper to ensure the base changed"
+        @wraps(func)
+        def wrapper(inst, *args, **kwargs):
+            before_base = Currency.objects.get(is_base=True).code
+            ret = func(inst, *args, **kwargs)
+            after_base = Currency.objects.get(is_base=True).code
+            inst.assertNotEqual(before_base, after_base)
+            return ret
+        return wrapper
+
     ## POSITIVE Tests ##
-    @BaseTestMixin._verify_rates('USD')
+    @_verify_rates('USD')
     def test_update_rates_nobase(self):
         "Update currency rates without supplying a base at all - USD"
         base = Currency.objects.update(is_base=False)
         self.default_rate_cmd()
 
-    @BaseTestMixin._verify_rates(BaseTestMixin._code_base)
+    @_verify_rates(BaseTestMixin._code_base)
     def test_update_rates_dbbase(self):
         "Update currency rates with the db base"
         self.default_rate_cmd()
 
-    @BaseTestMixin._verify_rates(BaseTestMixin._code_exist)
+    @_verify_rate_change
+    @_verify_rates(BaseTestMixin._code_exist)
     def test_update_rates_specifybase(self):
         "Update currency rates with a specific base"
-        before_base = Currency.objects.get(is_base=True).code
         self.run_cmd_verify_stdout(4, 'updatecurrencies', *self.source_arg, '--base=' + self._code_exist)
-        after_base = Currency.objects.get(is_base=True).code
-        self.assertEqual(self._code_exist, after_base)
-        self.assertNotEqual(before_base, after_base)
 
-#    def test_update_rates_variable_CURRENCIES_BASE(self):
-#        "Update currency rates using the CURRENCIES_BASE setting variable"
+    @_verify_rate_change
+    @_verify_rates(BaseTestMixin._code_exist)
+    def test_update_rates_variable_CURRENCIES_BASE(self):
+        "Update currency rates using the CURRENCIES_BASE setting variable"
+        with self.settings(CURRENCIES_BASE=self._code_exist):
+            self.default_rate_cmd()
 
-#    def test_update_rates_variable_SHOP_DEFAULT_CURRENCY(self):
-#        "Update currency rates using the SHOP_DEFAULT_CURRENCY setting variable"
+    @_verify_rate_change
+    @_verify_rates(BaseTestMixin._code_exist)
+    def test_update_rates_variable_SHOP_DEFAULT_CURRENCY(self):
+        "Update currency rates using the SHOP_DEFAULT_CURRENCY setting variable"
+        with self.settings(SHOP_DEFAULT_CURRENCY=self._code_exist):
+            self.default_rate_cmd()
 
-#    def test_update_rates_variable_BOTH(self):
-#        "Update currency rates with both builtin setting variables"
+    @_verify_rate_change
+    @_verify_rates(BaseTestMixin._code_exist)
+    def test_update_rates_variable_BOTH(self):
+        "CURRENCIES_BASE is given priority"
+        with self.settings(CURRENCIES_BASE=self._code_exist, SHOP_DEFAULT_CURRENCY=self._code_base):
+            self.default_rate_cmd()
 
-#    def test_update_rates_variable_WIBBLE(self):
-#        "Update currency rates using the WIBBLE setting variable"
-#    update all: no base & no variables & db base unset | ditto, db base set | -base GBP
-#    change base with default setting variables CURRENCIES_BASE (1) & SHOP_DEFAULT_CURRENCY (2): 1 | 2 | both
+    @_verify_rate_change
+    @_verify_rates(BaseTestMixin._code_exist)
+    def test_update_rates_variable_WIBBLE(self):
+        "Update currency rates using the WIBBLE setting variable"
+        with self.settings(WIBBLE=self._code_exist):
+            self.run_cmd_verify_stdout(4, 'updatecurrencies', *self.source_arg, '--base=WIBBLE')
 
     ## NEGATIVE Tests ##
 #    No connectivity
@@ -388,13 +412,15 @@ class DefaultTest(IncRatesMixin, BaseTestMixin, TestCase):
         del settings.OPENEXCHANGERATES_APP_ID
         self.assertRaises(ImproperlyConfigured, self.default_rate_cmd)
 
-    @patch('requests.Session', mock_requestsession_getexception())
+    @patch('currencies.management.commands._openexchangerates_client.requests.Session',
+        mock_requestsession_getexception())
     def test_no_connectivity_currencies(self):
         "Simulate connection problem - currencies"
         from currencies.management.commands._openexchangerates_client import OpenExchangeRatesClientException
         self.assertRaises(OpenExchangeRatesClientException, self.default_currency_cmd)
 
-    @patch('requests.Session', mock_requestsession_getexception())
+    @patch('currencies.management.commands._openexchangerates_client.requests.Session',
+        mock_requestsession_getexception())
     def test_no_connectivity_update(self):
         "Simulate connection problem - updatecurrencies"
         from currencies.management.commands._openexchangerates_client import OpenExchangeRatesClientException
