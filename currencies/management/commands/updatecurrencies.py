@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from decimal import Decimal
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 from .currencies import Command as CurrencyCommand
 from ...models import Currency
@@ -24,18 +25,19 @@ class Command(CurrencyCommand):
         Parse the base command option. Can be supplied as a 3 character code or a settings variable name
         If base is not supplied, looks for settings CURRENCIES_BASE and SHOP_DEFAULT_CURRENCY
         """
-        if isinstance(option, str) and option.isupper():
-            if len(option) == 3:
+        if option and option.isupper():
+            if len(option) > 3:
+                return getattr(settings, option), True
+            elif len(option) == 3:
                 return option, True
             else:
-                return getattr(settings, option), True
-        else:
-            for attr in ('CURRENCIES_BASE', 'SHOP_DEFAULT_CURRENCY'):
-                try:
-                    return getattr(settings, attr), True
-                except AttributeError:
-                    continue
-            return 'USD', False
+                raise ImproperlyConfigured("Invalid currency code found: %s" % option)
+        for attr in ('CURRENCIES_BASE', 'SHOP_DEFAULT_CURRENCY'):
+            try:
+                return getattr(settings, attr), True
+            except AttributeError:
+                continue
+        return 'USD', False
 
     def handle(self, *args, **options):
         """Handle the command"""
