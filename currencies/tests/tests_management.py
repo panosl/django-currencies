@@ -300,10 +300,13 @@ class BaseTestMixin(object):
         mock_requestsession_getexception())
     def test_no_connectivity(self):
         "Currencies: Simulate connection problem"
-        from currencies.management.commands._openexchangerates_client import OpenExchangeRatesClientException
-        self.assertRaises(OpenExchangeRatesClientException, self.default_currency_cmd)
+        self.assertRaises(Exception, self.default_currency_cmd)
 
-#TODO    Source down - overwrite endpoint
+    @patch('currencies.management.commands._openexchangerates_client.OpenExchangeRatesClient.ENDPOINT_CURRENCIES',
+        'http://www.google.com/test.json')
+    def test_import_source_down(self):
+        "Currencies: Simulate source down"
+        self.assertRaises(Exception, self.default_currency_cmd)
 
     def test_import_invalid_variable(self):
         "Currencies: Invalid import options"
@@ -321,6 +324,13 @@ class BaseTestMixin(object):
 
 class IncCacheMixin(object):
     "For source handlers that cache their currencies"
+
+    @patch('currencies.management.commands._currencyiso.CurrencyHandler.endpoint', 'http://www.google.com/test.xml')
+    @patch('currencies.management.commands._yahoofinance.CurrencyHandler.endpoint', 'http://www.google.com/test.json')
+    def test_import_source_down(self):
+        "Currencies: Simulate source down - imports from cache"
+        self.default_currency_cmd()
+
     @patch('currencies.management.commands._currencyiso.get', mock_requestget_exception())
     @patch('currencies.management.commands._yahoofinance.get', mock_requestget_exception())
     def test_no_connectivity(self):
@@ -342,6 +352,7 @@ class IncCacheMixin(object):
         self.assertRaises(RuntimeError, self.test_import_single_currency_short)
 
 
+#TODO:
 #class IncSymbolsMixin(object):
 #class IncInfoMixin(object):
 
@@ -427,34 +438,26 @@ class IncRatesMixin(object):
     def test_update_rates_invalid_variable(self):
         "Rates: Invalid base option"
         with self.assertRaises(AttributeError):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '--import=WIBBLE')
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '--base=WIBBLE')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=')
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '-b=' + self._code_2dp)
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=AB')
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '-b=AB')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=gbp')
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '-b=gbp')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '--import=ZZZ')
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '--base=ZZZ')
 
     def test_update_no_connectivity(self):
         "Rates: Simulate connection problem"
-        from currencies.management.commands._openexchangerates_client import OpenExchangeRatesClientException
         # Patch inside the function to override the class patch
         with patch('currencies.management.commands._openexchangerates_client.requests.Session',
             mock_requestsession_getexception()):
-            self.assertRaises(OpenExchangeRatesClientException, self.default_rate_cmd)
+            self.assertRaises(Exception, self.default_rate_cmd)
 
-#TODO
-#    Source down
-#    Base variable which does not exist
-#    Empty base switch
-#    Specific base which does not exist in the db
-#    Unavailable currency
 
 
 ### ACTUAL CURRENCY SOURCE TEST CLASSES ###
-
 @override_settings( **default_settings )
 class DefaultTest(IncRatesMixin, BaseTestMixin, TestCase):
     "Test OpenExchangeRates support: the default source"

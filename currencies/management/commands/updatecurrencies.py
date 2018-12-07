@@ -25,13 +25,13 @@ class Command(CurrencyCommand):
         Parse the base command option. Can be supplied as a 3 character code or a settings variable name
         If base is not supplied, looks for settings CURRENCIES_BASE and SHOP_DEFAULT_CURRENCY
         """
-        if option and option.isupper():
-            if len(option) > 3:
-                return getattr(settings, option), True
-            elif len(option) == 3:
-                return option, True
-            else:
-                raise ImproperlyConfigured("Invalid currency code found: %s" % option)
+        if option:
+            if option.isupper():
+                if len(option) > 3:
+                    return getattr(settings, option), True
+                elif len(option) == 3:
+                    return option, True
+            raise ImproperlyConfigured("Invalid currency code found: %s" % option)
         for attr in ('CURRENCIES_BASE', 'SHOP_DEFAULT_CURRENCY'):
             try:
                 return getattr(settings, attr), True
@@ -66,8 +66,8 @@ class Command(CurrencyCommand):
                 base_obj = Currency._default_manager.get(code=base)
             except Currency.DoesNotExist:
                 base_in_db = False
-                self.log(logging.ERROR,
-                    "Base currency %r does not exist in the db! Rates will be erroneous without it.", base)
+                raise ImproperlyConfigured(
+                    "Base currency %r does not exist in the db! Rates will be erroneous without it." % base)
 
         if db_base and base_was_arg and base_in_db and (db_base != base):
             self.log(logging.INFO, "Changing db base currency from %s to %s", db_base, base)
