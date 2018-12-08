@@ -163,7 +163,7 @@ Integration                    Live Feeds
 -----------  -------------------------------------------------
 ..           Currencies      Rates       Symbols    Other Info
 ===========  ==========  =============  ==========  ==========
-    oxr          |T|          |T|          |T|*
+    oxr          |T|          |T|          |T| *
    yahoo         |T|     |ss| |T| |se|     |T|         |T|
     iso          |T|                                   |T|
 ===========  ==========  =============  ==========  ==========
@@ -177,7 +177,7 @@ Integration                    Live Feeds
 
     </s>
 
-* Symbols are imported from the file ``currencies.json`` because it is not supported by the service.
+\* Symbols are imported from the file ``currencies.json`` because it is not supported by the service.
 Other info includes ISO4217 number and exponent, country and city names, and alternative
 currency names.
 
