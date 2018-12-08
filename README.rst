@@ -163,17 +163,21 @@ Integration                    Live Feeds
 -----------  -------------------------------------------------
 ..           Currencies      Rates       Symbols    Other Info
 ===========  ==========  =============  ==========  ==========
-    oxr          |T|          |T|          |T|
+    oxr          |T|          |T|          |T|*
    yahoo         |T|     |ss| |T| |se|     |T|         |T|
     iso          |T|                                   |T|
 ===========  ==========  =============  ==========  ==========
 
 .. |T| unicode:: U+2705 .. ticked
 .. |ss| raw:: html
-    <strike>
-.. |se| raw:: html
-    </strike>
 
+    <s>
+
+.. |se| raw:: html
+
+    </s>
+
+* Symbols are imported from the file ``currencies.json`` because it is not supported by the service.
 Other info includes ISO4217 number and exponent, country and city names, and alternative
 currency names.
 
