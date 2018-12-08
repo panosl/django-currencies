@@ -69,7 +69,7 @@ setup(
     include_package_data=True,
 
     tests_require=[
-        'HTTPretty',
+#        'HTTPretty',
         'codecov',
     ],
     cmdclass={
