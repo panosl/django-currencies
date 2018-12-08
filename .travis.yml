@@ -4,7 +4,6 @@ python:
   - "3.5"
   - "pypy3"
   - "2.7"
-  - "pypy"
 sudo: false
 env:
   - DJANGO_VERSION=1.8
@@ -24,8 +23,6 @@ matrix:
   exclude:
     - python: "3.6"
       env: DJANGO_VERSION=1.8
-    - python: "pypy"
-      env: DJANGO_VERSION=2.0
     - python: "2.7"
       env: DJANGO_VERSION=2.0
     - python: "pypy"
