@@ -73,6 +73,7 @@ setup(
 # Not used when running python setup.py develop or test? See .travis.yml
     tests_require=[
         'httpretty',    # for openexchangerates client
+        'mock',         # for python 2.7 test mock
         'codecov',      # for codecov.io
     ],
     cmdclass={

@@ -12,7 +12,7 @@ env:
   - DJANGO_VERSION=2.0
   - DJANGO_VERSION=2.1
 before_install:
-  - pip install httpretty codecov
+  - pip install httpretty mock codecov
   - pip install -q django==$DJANGO_VERSION
 install:
   - python setup.py develop

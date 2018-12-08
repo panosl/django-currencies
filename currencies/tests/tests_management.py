@@ -3,11 +3,14 @@
 Various test cases for the `currencies` and `updatecurrencies` management commands
 """
 from __future__ import unicode_literals
-import re, os
+import re, os, sys
 from decimal import Decimal
 from datetime import datetime, timedelta
 from functools import wraps
-from unittest.mock import patch, MagicMock
+if sys.version_info.major >= 3:
+    from unittest.mock import patch, MagicMock
+else:
+    from mock import patch, MagicMock
 from django import template
 from django.test import TestCase, override_settings
 from django.core.management import call_command
