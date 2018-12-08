@@ -230,32 +230,6 @@ class BaseTestMixin(object):
             return ret
         return wrapper
 
-    def _move_cache_file(modulename):
-        "Wrapper for testing the currency cache file. Keeps the newest file with size>0"
-        def decorator(func):
-            @wraps(func)
-            def wrapper(inst, *args, **kwargs):
-                from importlib import import_module
-                from random import randint
-                module = import_module(modulename)
-                modfile = module.CurrencyHandler._cached_currency_file
-                orgfile = os.path.join(os.path.dirname(modfile), str(randint(100000, 999999)) + '.tmp')
-                os.rename(modfile, orgfile)
-                ret = func(inst, *args, **kwargs)
-                try:
-                    modfileinfo = os.stat(modfile)
-                except Exception:
-                    os.rename(orgfile, modfile)
-                else:
-                    if modfileinfo.st_size > 0 and modfileinfo.st_mtime > os.stat(orgfile).st_mtime:
-                        os.remove(orgfile)
-                    else:
-                        os.remove(modfile)
-                        os.rename(orgfile, modfile)
-                return ret
-            return wrapper
-        return decorator
-
 
     ### TESTS FOR SOURCES THAT SUPPORT IMPORTING NEW CURRENCIES ###
     ## POSITIVE Tests ##
@@ -382,6 +356,32 @@ class BaseTestMixin(object):
 class IncCacheMixin(object):
     "For source handlers that cache their currencies"
 
+    def _move_cache_file(modulename):
+        "Wrapper for testing the currency cache file. Keeps the newest file with size>0"
+        def decorator(func):
+            @wraps(func)
+            def wrapper(inst, *args, **kwargs):
+                from importlib import import_module
+                from random import randint
+                module = import_module(modulename)
+                modfile = module.CurrencyHandler._cached_currency_file
+                orgfile = os.path.join(os.path.dirname(modfile), str(randint(100000, 999999)) + '.tmp')
+                os.rename(modfile, orgfile)
+                ret = func(inst, *args, **kwargs)
+                try:
+                    modfileinfo = os.stat(modfile)
+                except Exception:
+                    os.rename(orgfile, modfile)
+                else:
+                    if modfileinfo.st_size > 0 and modfileinfo.st_mtime > os.stat(orgfile).st_mtime:
+                        os.remove(orgfile)
+                    else:
+                        os.remove(modfile)
+                        os.rename(orgfile, modfile)
+                return ret
+            return wrapper
+        return decorator
+
     @patch('currencies.management.commands._currencyiso.CurrencyHandler.endpoint', 'http://www.google.com/test.xml')
     @patch('currencies.management.commands._yahoofinance.CurrencyHandler.endpoint', 'http://www.google.com/test.json')
     def test_import_source_down(self):
@@ -394,19 +394,23 @@ class IncCacheMixin(object):
         "Currencies: Simulate connection problem - imports from cache"
         self.test_import_single_currency_short()
 
-    @BaseTestMixin._move_cache_file('currencies.management.commands._currencyiso')
-    @BaseTestMixin._move_cache_file('currencies.management.commands._yahoofinance')
+    @_move_cache_file('currencies.management.commands._currencyiso')
+    @_move_cache_file('currencies.management.commands._yahoofinance')
     def test_no_cache(self):
         "Currencies: Simulate no cache file - imports from API"
         self.test_import_single_currency_short()
 
-    @BaseTestMixin._move_cache_file('currencies.management.commands._currencyiso')
-    @BaseTestMixin._move_cache_file('currencies.management.commands._yahoofinance')
+    @_move_cache_file('currencies.management.commands._currencyiso')
+    @_move_cache_file('currencies.management.commands._yahoofinance')
     @patch('currencies.management.commands._currencyiso.get', mock_requestget_exception())
     @patch('currencies.management.commands._yahoofinance.get', mock_requestget_exception())
     def test_no_connectivity_or_cache(self):
         "Currencies: Simulate connection problem & no cache - exception"
         self.assertRaises(RuntimeError, self.test_import_single_currency_short)
+
+    # Strange fix for externally referenced python 2.7 decorator methods
+    if sys.version_info.major == 2:
+        _move_cache_file = staticmethod(_move_cache_file)
 
 
 class IncInfoMixin(object):
@@ -564,7 +568,7 @@ class YahooTest(IncInfoMixin, IncCacheMixin, BaseTestMixin, TestCase):
 
     ## NEGATIVE Tests ##
     # Overrides the base test due to API withdrawal
-    @BaseTestMixin._move_cache_file('currencies.management.commands._yahoofinance')
+    @IncCacheMixin._move_cache_file('currencies.management.commands._yahoofinance')
     def test_no_cache(self):
         "Currencies: Simulate no cache file - API withdrawn so will raise exception"
         self.assertRaises(RuntimeError, self.test_import_single_currency_short)
