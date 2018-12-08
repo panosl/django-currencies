@@ -158,23 +158,20 @@ Select this source by specifying ``iso`` as positional argument.
 
 Requirements: `requests <http://docs.python-requests.org/en/master/>`_
 
-===========  ==========  ==========  ==========  ==========
-Integration                    Live Feeds                  
------------  ----------------------------------------------
-..           Currencies    Rates       Symbols   Other Info
-===========  ==========  ==========  ==========  ==========
-    oxr          |T|         |T|                           
-   yahoo         |T|    |ss| |T| |se|    |T|         |T|   
-    iso          |T|                                 |T|   
-===========  ==========  ==========  ==========  ==========
+===========  ==========  =============  ==========  ==========
+Integration                    Live Feeds
+-----------  -------------------------------------------------
+..           Currencies      Rates       Symbols    Other Info
+===========  ==========  =============  ==========  ==========
+    oxr          |T|          |T|          |T|
+   yahoo         |T|     |ss| |T| |se|     |T|         |T|
+    iso          |T|                                   |T|
+===========  ==========  =============  ==========  ==========
 
 .. |T| unicode:: U+2705 .. ticked
 .. |ss| raw:: html
-
     <strike>
-
 .. |se| raw:: html
-
     </strike>
 
 Other info includes ISO4217 number and exponent, country and city names, and alternative
