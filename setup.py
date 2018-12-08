@@ -51,6 +51,7 @@ setup(
     install_requires=[
         'django>=1.8',
         'jsonfield>=1.0.3',
+        'requests>=2.14.2',
     ],
 
     description='Adds support for multiple currencies as a Django application.',
@@ -69,7 +70,7 @@ setup(
     include_package_data=True,
 
     tests_require=[
-#        'HTTPretty',
+        'httpretty',
         'codecov',
     ],
     cmdclass={
