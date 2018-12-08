@@ -177,9 +177,9 @@ Integration                    Live Feeds
 
     </s>
 
-\* Symbols are imported from the file ``currencies.json`` because it is not supported by the service.
-Other info includes ISO4217 number and exponent, country and city names, and alternative
-currency names.
+| \* Symbols are imported from the file ``currencies.json`` because it is not supported by the service.
+| Other info includes ISO4217 number and exponent, country and city names, and alternative
+  currency names.
 
 Usage
 -----
