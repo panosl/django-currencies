@@ -69,8 +69,8 @@ setup(
     include_package_data=True,
 
     tests_require=[
-        HTTPretty,
-        codecov,
+        'HTTPretty',
+        'codecov',
     ],
     cmdclass={
         'test': TestRunner,
