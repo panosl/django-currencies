@@ -76,7 +76,7 @@ class BaseTestMixin(object):
     No rate updates - factor
     Tests for functionality can be overridden with the included mixins
     """
-    source_arg = []
+    source_arg = ()
 
     _code_0dp = 'JPY'
     _symb_0dp = '¥'
@@ -101,6 +101,7 @@ class BaseTestMixin(object):
 
     def run_cmd_verify_stdout(self, min_lines, cmd, *args, **kwargs):
         "Runs the given command with full verbosity and checks there are output strings"
+        args = self.source_arg + args
         kwargs.setdefault('verbosity', 3)
         buf = StringIO()
         call_command(cmd, stdout=buf, stderr=buf, *args, **kwargs)
@@ -111,17 +112,17 @@ class BaseTestMixin(object):
 
     def default_currency_cmd(self):
         "Single currency import that is reused for a lot of basic tests"
-        return self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=' + self._code_2dp)
+        return self.run_cmd_verify_stdout(2, 'currencies', '-i=' + self._code_2dp)
 
     def import_all(self):
-        return self.run_cmd_verify_stdout(20, 'currencies', *self.source_arg)
+        return self.run_cmd_verify_stdout(20, 'currencies')
 
     def import_one(self):
-        return self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg)
+        return self.run_cmd_verify_stdout(2, 'currencies')
 
     def default_rate_cmd(self):
         "Rate update command that is reused for a lot of basic tests. Uses the base from the db"
-        return self.run_cmd_verify_stdout(3, 'updatecurrencies', *self.source_arg)
+        return self.run_cmd_verify_stdout(3, 'updatecurrencies')
 
     def _verify_stdout_msg(msglist):
         "Ensure one of the messages is in the command stdout"
@@ -293,19 +294,19 @@ class BaseTestMixin(object):
     def test_import_variable_WIBBLE(self):
         "Currencies: Custom setting works"
         with self.settings(WIBBLE=[self._code_3dp]):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '--import=WIBBLE')
+            self.run_cmd_verify_stdout(2, 'currencies', '--import=WIBBLE')
 
     @_verify_new_currencylist([_code_0dp])
     @_verify_new_currencies
     def test_import_single_currency_long(self):
         "Currencies: Long import syntax"
-        self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '--import=' + self._code_0dp)
+        self.run_cmd_verify_stdout(2, 'currencies', '--import=' + self._code_0dp)
 
     @_verify_new_currencylist([_code_2dp])
     @_verify_new_currencies
     def test_import_single_currency_short(self):
         "Currencies: Short import syntax"
-        self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=' + self._code_2dp)
+        self.run_cmd_verify_stdout(2, 'currencies', '-i=' + self._code_2dp)
 
     @_verify_new_symbols
     @_verify_new_names
@@ -313,13 +314,13 @@ class BaseTestMixin(object):
     @_verify_new_currencies
     def test_import_single_currencies_mix(self):
         "Currencies: Mix of import syntax. Also names and symbols are populated"
-        self.run_cmd_verify_stdout(3, 'currencies', *self.source_arg,
+        self.run_cmd_verify_stdout(3, 'currencies',
             '--import=' + self._code_3dp, '-i=' + self._code_2dp, '-i=' + self._code_0dp)
 
     def test_skip_existing_currency(self):
         "Currencies: Skip existing currency"
         before = Currency.objects.get(code=self._code_exist)
-        self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=' + self._code_exist)
+        self.run_cmd_verify_stdout(2, 'currencies', '-i=' + self._code_exist)
         after = Currency.objects.get(code=self._code_exist)
         self.assertEqual(before.name, after.name)
         self.assertEqual(before.symbol, after.symbol)
@@ -330,7 +331,7 @@ class BaseTestMixin(object):
         "Currencies: Overwrite existing currency"
         before = Currency.objects.get(code=self._code_exist)
         runtime = datetime.now()
-        self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '--force', '-i=' + self._code_exist)
+        self.run_cmd_verify_stdout(2, 'currencies', '--force', '-i=' + self._code_exist)
         after = Currency.objects.get(code=self._code_exist)
         self.assertNotEqual(before.info, after.info)
         self.assertAlmostEqual(runtime, fromisoformat(after.info['Modified']), delta=self._now_delta)
@@ -364,15 +365,15 @@ class BaseTestMixin(object):
     def test_import_invalid_variable(self):
         "Currencies: Invalid import options"
         with self.assertRaises(AttributeError):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '--import=WIBBLE')
+            self.run_cmd_verify_stdout(2, 'currencies', '--import=WIBBLE')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=')
+            self.run_cmd_verify_stdout(2, 'currencies', '-i=')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=AB')
+            self.run_cmd_verify_stdout(2, 'currencies', '-i=AB')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=gbp')
+            self.run_cmd_verify_stdout(2, 'currencies', '-i=gbp')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '--import=ZZZ')
+            self.run_cmd_verify_stdout(2, 'currencies', '--import=ZZZ')
 
 
 class IncCacheMixin(object):
@@ -472,7 +473,7 @@ class IncRatesMixin(object):
     @_verify_rates(BaseTestMixin._code_exist)
     def test_update_rates_specifybase(self):
         "Rates: Update currency rates with a specific base"
-        self.run_cmd_verify_stdout(4, 'updatecurrencies', *self.source_arg, '--base=' + self._code_exist)
+        self.run_cmd_verify_stdout(4, 'updatecurrencies', '--base=' + self._code_exist)
 
     @_verify_rate_change
     @_verify_rates(BaseTestMixin._code_exist)
@@ -500,21 +501,21 @@ class IncRatesMixin(object):
     def test_update_rates_variable_WIBBLE(self):
         "Rates: Update currency rates using the WIBBLE setting variable"
         with self.settings(WIBBLE=self._code_exist):
-            self.run_cmd_verify_stdout(4, 'updatecurrencies', *self.source_arg, '--base=WIBBLE')
+            self.run_cmd_verify_stdout(4, 'updatecurrencies', '--base=WIBBLE')
 
     ## NEGATIVE Tests ##
     def test_update_rates_invalid_variable(self):
         "Rates: Invalid base option"
         with self.assertRaises(AttributeError):
-            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '--base=WIBBLE')
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', '--base=WIBBLE')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '-b=' + self._code_2dp)
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', '-b=' + self._code_2dp)
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '-b=AB')
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', '-b=AB')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '-b=gbp')
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', '-b=gbp')
         with self.assertRaises(ImproperlyConfigured):
-            self.run_cmd_verify_stdout(2, 'updatecurrencies', *self.source_arg, '--base=ZZZ')
+            self.run_cmd_verify_stdout(2, 'updatecurrencies', '--base=ZZZ')
 
     def test_update_no_connectivity(self):
         "Rates: Simulate connection problem"
@@ -550,13 +551,13 @@ class DefaultTest(IncRatesMixin, BaseTestMixin, TestCase):
 
 class OXRTest(DefaultTest):
     "Test OpenExchangeRates support: when specified"
-    source_arg = ['oxr']
+    source_arg = ('oxr',)
 
 
 class YahooTest(IncInfoMixin, IncCacheMixin, BaseTestMixin, TestCase):
     "Test Yahoo support"
     fixtures = ['currencies_test']
-    source_arg = ['yahoo']
+    source_arg = ('yahoo',)
 
     ## NEGATIVE Tests ##
     # Overrides the base test due to API withdrawal
@@ -569,5 +570,5 @@ class YahooTest(IncInfoMixin, IncCacheMixin, BaseTestMixin, TestCase):
 class ISOTest(IncInfoMixin, IncCacheMixin, BaseTestMixin, TestCase):
     "Test Currency ISO support"
     fixtures = ['currencies_test']
-    source_arg = ['iso']
+    source_arg = ('iso',)
 

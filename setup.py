@@ -70,9 +70,10 @@ setup(
     packages=find_packages(exclude=('example*', '*.tests*')),
     include_package_data=True,
 
+# Not used when running python setup.py develop or test? See .travis.yml
     tests_require=[
-        'httpretty',
-        'codecov',
+        'httpretty',    # for openexchangerates client
+        'codecov',      # for codecov.io
     ],
     cmdclass={
         'test': TestRunner,
