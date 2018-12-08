@@ -69,12 +69,12 @@ def mock_requestget_exception():
 class BaseTestMixin(object):
     """
     Test suite for minimal source functionality:
-    Currencies
-    No cache
-    No symbols
+    Currencies - code & name
+    Symbols - inherited by base handler taken from static file currencies.json
+    No cache file
     No info
-    No rates
-    This can be overridden with the included mixins
+    No rate updates - factor
+    Tests for functionality can be overridden with the included mixins
     """
     source_arg = []
 
@@ -97,6 +97,7 @@ class BaseTestMixin(object):
     _symb_base = '€'
     _name_base = 'Euro'
     _now_delta = timedelta(seconds=1)
+    _min_info = ['Created', 'Modified']
 
     def run_cmd_verify_stdout(self, min_lines, cmd, *args, **kwargs):
         "Runs the given command with full verbosity and checks there are output strings"
@@ -111,6 +112,12 @@ class BaseTestMixin(object):
     def default_currency_cmd(self):
         "Single currency import that is reused for a lot of basic tests"
         return self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=' + self._code_2dp)
+
+    def import_all(self):
+        return self.run_cmd_verify_stdout(20, 'currencies', *self.source_arg)
+
+    def import_one(self):
+        return self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg)
 
     def default_rate_cmd(self):
         "Rate update command that is reused for a lot of basic tests. Uses the base from the db"
@@ -136,7 +143,8 @@ class BaseTestMixin(object):
     def _verify_new_currencies(func):
         """
         Wrapper for testing commands that add new currencies
-        Django 1.11 introduced queryset difference(). This would be a better way to implement these tests
+        Django 1.11 introduced queryset difference(). This would be a better way to implement this wrapper
+        but currently we're supporting 1.8
         """
         @wraps(func)
         def wrapper(inst, *args, **kwargs):
@@ -167,17 +175,56 @@ class BaseTestMixin(object):
             return ret
         return wrapper
 
-    def _verify_new_currency(currency_code):
-        "Wrapper for testing a single added currency"
+    def _verify_new_currencylist(currency_list):
+        "Wrapper for testing a specific list of currencies"
         def decorator(func):
             @wraps(func)
             def wrapper(inst, *args, **kwargs):
-                inst.assertRaises(Currency.DoesNotExist, Currency.objects.get, code=currency_code)
+                qs = Currency.objects.all()
+                for code in currency_list:
+                    inst.assertRaises(Currency.DoesNotExist, qs.get, code=code)
                 ret = func(inst, *args, **kwargs)
-                inst.assertIs(Currency.objects.filter(code=currency_code).exists(), True)
+                qs = Currency.objects.all()
+                for code in currency_list:
+                    inst.assertIs(qs.filter(code=code).exists(), True)
                 return ret
             return wrapper
         return decorator
+
+    def _verify_new_names(func):
+        "Wrapper for checking new currencies get a sensible name"
+        @wraps(func)
+        def wrapper(inst, *args, **kwargs):
+            ret = func(inst, *args, **kwargs)
+            names = zip(inst._newcodes, inst._newnames)
+            qs = Currency.objects.all()
+            for code, name in names:
+                inst.assertRegexpMatches(qs.get(code=code).name, name)
+            return ret
+        return wrapper
+
+    def _verify_new_symbols(func):
+        "Wrapper for checking some new symbols have been populated"
+        @wraps(func)
+        def wrapper(inst, *args, **kwargs):
+            ret = func(inst, *args, **kwargs)
+            symbs = zip(inst._newcodes, inst._newsymbs)
+            qs = Currency.objects.all()
+            for code, symb in symbs:
+                inst.assertEqual(qs.get(code=code).symbol, symb)
+            return ret
+        return wrapper
+
+    def _verify_no_info(func):
+        "Wrapper for checking info is minimal on new imports"
+        @wraps(func)
+        def wrapper(inst, *args, **kwargs):
+            ret = func(inst, *args, **kwargs)
+            qs = Currency.objects.all()
+            for code in inst._newcodes:
+                inst.assertEqual(sorted(list(qs.get(code=code).info.keys())), inst._min_info)
+            return ret
+        return wrapper
 
     def _move_cache_file(modulename):
         "Wrapper for testing the currency cache file. Keeps the newest file with size>0"
@@ -211,61 +258,61 @@ class BaseTestMixin(object):
     @_verify_new_currencies
     def test_import_all_currencies_bydefault(self):
         "Currencies: No parameters imports all currencies"
-        self.run_cmd_verify_stdout(20, 'currencies', *self.source_arg)
+        self.import_all()
 
     @_verify_new_currencies
     def test_import_all_currencies_byemptysetting(self):
         "Currencies: Empty CURRENCIES setting imports all currencies"
         with self.settings(CURRENCIES=[]):
-            self.run_cmd_verify_stdout(20, 'currencies', *self.source_arg)
+            self.import_all()
 
-    @_verify_new_currency(_code_0dp)
+    @_verify_new_currencylist([_code_0dp])
     @_verify_new_currencies
     def test_import_variable_CURRENCIES(self):
         "Currencies: CURRENCIES setting works"
         with self.settings(CURRENCIES=[self._code_0dp]):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg)
+            self.import_one()
 
-    @_verify_new_currency(_code_2dp)
+    @_verify_new_currencylist([_code_2dp])
     @_verify_new_currencies
     def test_import_variable_SHOP_CURRENCIES(self):
         "Currencies: SHOP_CURRENCIES setting works"
         with self.settings(SHOP_CURRENCIES=[self._code_2dp]):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg)
+            self.import_one()
 
-    @_verify_new_currency(_code_0dp)
+    @_verify_new_currencylist([_code_0dp])
     @_verify_new_currencies
     def test_import_variable_BOTH(self):
         "Currencies: CURRENCIES setting is given priority"
         with self.settings(SHOP_CURRENCIES=[self._code_2dp], CURRENCIES=[self._code_0dp]):
-            self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg)
+            self.import_one()
         self.assertRaises(Currency.DoesNotExist, Currency.objects.get, code=self._code_2dp)
 
-    @_verify_new_currency(_code_3dp)
+    @_verify_new_currencylist([_code_3dp])
     @_verify_new_currencies
     def test_import_variable_WIBBLE(self):
         "Currencies: Custom setting works"
         with self.settings(WIBBLE=[self._code_3dp]):
             self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '--import=WIBBLE')
 
-    @_verify_new_currency(_code_0dp)
+    @_verify_new_currencylist([_code_0dp])
     @_verify_new_currencies
     def test_import_single_currency_long(self):
         "Currencies: Long import syntax"
         self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '--import=' + self._code_0dp)
 
-    @_verify_new_currency(_code_2dp)
+    @_verify_new_currencylist([_code_2dp])
     @_verify_new_currencies
     def test_import_single_currency_short(self):
         "Currencies: Short import syntax"
         self.run_cmd_verify_stdout(2, 'currencies', *self.source_arg, '-i=' + self._code_2dp)
 
-    @_verify_new_currency(_code_0dp)
-    @_verify_new_currency(_code_2dp)
-    @_verify_new_currency(_code_3dp)
+    @_verify_new_symbols
+    @_verify_new_names
+    @_verify_new_currencylist(_newcodes)
     @_verify_new_currencies
     def test_import_single_currencies_mix(self):
-        "Currencies: Mix of import syntax"
+        "Currencies: Mix of import syntax. Also names and symbols are populated"
         self.run_cmd_verify_stdout(3, 'currencies', *self.source_arg,
             '--import=' + self._code_3dp, '-i=' + self._code_2dp, '-i=' + self._code_0dp)
 
@@ -287,6 +334,12 @@ class BaseTestMixin(object):
         after = Currency.objects.get(code=self._code_exist)
         self.assertNotEqual(before.info, after.info)
         self.assertAlmostEqual(runtime, fromisoformat(after.info['Modified']), delta=self._now_delta)
+
+    # Test overridden in IncInfoMixin
+    @_verify_no_info
+    def test_info(self):
+        "Currencies: only minimal info captured"
+        self.import_all()
 
     # Test overridden in IncRatesMixin
     @_verify_stdout_msg(['source does not provide currency rate information', 'Deprecated'])
@@ -352,9 +405,24 @@ class IncCacheMixin(object):
         self.assertRaises(RuntimeError, self.test_import_single_currency_short)
 
 
-#TODO:
-#class IncSymbolsMixin(object):
-#class IncInfoMixin(object):
+class IncInfoMixin(object):
+    "For sources that support currency info"
+
+    def _verify_new_info(func):
+        "Wrapper for checking info is imported on new imports"
+        @wraps(func)
+        def wrapper(inst, *args, **kwargs):
+            ret = func(inst, *args, **kwargs)
+            qs = Currency.objects.all()
+            for code in inst._newcodes:
+                inst.assertNotEqual(sorted(list(qs.get(code=code).info.keys())), inst._min_info)
+            return ret
+        return wrapper
+
+    @_verify_new_info
+    def test_info(self):
+        "Currencies: extra info"
+        self.import_all()
 
 
 @patch('currencies.management.commands._openexchangerates_client.requests.Session',
@@ -459,6 +527,7 @@ class IncRatesMixin(object):
 
 ### ACTUAL CURRENCY SOURCE TEST CLASSES ###
 @override_settings( **default_settings )
+#TODO: No caching of currencies currently implemented for OpenExchangeRates: IncCacheMixin
 class DefaultTest(IncRatesMixin, BaseTestMixin, TestCase):
     "Test OpenExchangeRates support: the default source"
     fixtures = ['currencies_test']
@@ -478,17 +547,13 @@ class DefaultTest(IncRatesMixin, BaseTestMixin, TestCase):
         del settings.OPENEXCHANGERATES_APP_ID
         self.assertRaises(ImproperlyConfigured, self.default_rate_cmd)
 
-#TODO: No caching of currencies currently implemented for OpenExchangeRates
-#    def test_no_cache(self):
-#    def test_no_connectivity_or_cache(self):
-
 
 class OXRTest(DefaultTest):
     "Test OpenExchangeRates support: when specified"
     source_arg = ['oxr']
 
 
-class YahooTest(IncCacheMixin, BaseTestMixin, TestCase):
+class YahooTest(IncInfoMixin, IncCacheMixin, BaseTestMixin, TestCase):
     "Test Yahoo support"
     fixtures = ['currencies_test']
     source_arg = ['yahoo']
@@ -501,7 +566,7 @@ class YahooTest(IncCacheMixin, BaseTestMixin, TestCase):
         self.assertRaises(RuntimeError, self.test_import_single_currency_short)
 
 
-class ISOTest(IncCacheMixin, BaseTestMixin, TestCase):
+class ISOTest(IncInfoMixin, IncCacheMixin, BaseTestMixin, TestCase):
     "Test Currency ISO support"
     fixtures = ['currencies_test']
     source_arg = ['iso']
