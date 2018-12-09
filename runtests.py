@@ -8,6 +8,13 @@ from django.conf import settings, global_settings
 from django.core.management import execute_from_command_line
 
 
+MIDDLEWARE = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+)
+
 if not settings.configured:
     module_root = path.dirname(path.realpath(__file__))
 
@@ -35,12 +42,9 @@ if not settings.configured:
             'django.contrib.sites',
             'currencies',
         ),
-        MIDDLEWARE_CLASSES = (
-            'django.middleware.common.CommonMiddleware',
-            'django.contrib.sessions.middleware.SessionMiddleware',
-            'django.middleware.csrf.CsrfViewMiddleware',
-            'django.contrib.auth.middleware.AuthenticationMiddleware',
-        ),
+        # For django 1.8 to 2.1 compatibility
+        MIDDLEWARE = MIDDLEWARE,
+        MIDDLEWARE_CLASSES = MIDDLEWARE,
         SITE_ID = 1,
         ROOT_URLCONF = 'currencies.tests.test_urls',
     )
