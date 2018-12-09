@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
+from datetime import datetime
 from collections import OrderedDict
 from importlib import import_module
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.core.exceptions import ImproperlyConfigured
 from ...models import Currency
 
 
@@ -47,17 +49,20 @@ class Command(BaseCommand):
         See if we have been passed a set of currencies or a setting variable
         or look for settings CURRENCIES or SHOP_CURRENCIES.
         """
-        if not option:
-            for attr in ('CURRENCIES', 'SHOP_CURRENCIES'):
-                try:
-                    return getattr(settings, attr)
-                except AttributeError:
-                    continue
-            return option
-        elif len(option) == 1 and option[0].isupper() and len(option[0]) != 3:
-            return getattr(settings, option[0])
-        else:
-            return [e for e in option if e]
+        if option:
+            if len(option) == 1 and option[0].isupper() and len(option[0]) > 3:
+                return getattr(settings, option[0])
+            else:
+                codes = [e for e in option if e.isupper() and len(e) == 3]
+                if len(codes) != len(option):
+                    raise ImproperlyConfigured("Invalid currency codes found: %s" % codes)
+                return codes
+        for attr in ('CURRENCIES', 'SHOP_CURRENCIES'):
+            try:
+                return getattr(settings, attr)
+            except AttributeError:
+                continue
+        return option
 
     @property
     def verbosity(self):
@@ -104,6 +109,7 @@ class Command(BaseCommand):
         handler = self.get_handler(options)
 
         self.log(logging.INFO, "Getting currency data from %s", handler.endpoint)
+        timestamp = datetime.now().isoformat()
 
         # find available codes
         if imports:
@@ -125,22 +131,24 @@ class Command(BaseCommand):
                 if created:
                     kwargs['is_active'] = False
                     msg = "Creating %s"
+                    obj.info.update( {'Created': timestamp} )
                 else:
                     msg = "Updating %s"
+                obj.info.update( {'Modified': timestamp} )
 
                 if name:
                     kwargs['name'] = name
+
                 symbol = handler.get_currencysymbol(code)
                 if symbol:
                     kwargs['symbol'] = symbol
+
                 try:
-                    infodict = handler.get_info(code)
+                    obj.info.update(handler.get_info(code))
                 except AttributeError:
                     pass
-                else:
-                    if infodict:
-                        obj.info.update(infodict)
-                        kwargs['info'] = obj.info
+
+                kwargs['info'] = obj.info
 
                 self.log(logging.INFO, msg, description)
                 Currency._default_manager.filter(pk=obj.pk).update(**kwargs)
@@ -149,4 +157,4 @@ class Command(BaseCommand):
                 self.log(logging.INFO, msg, description)
 
         if unavailable:
-            self.log(logging.ERROR, "Currencies %s not found in %s source", unavailable, handler.name)
+            raise ImproperlyConfigured("Currencies %s not found in %s source" % (unavailable, handler.name))

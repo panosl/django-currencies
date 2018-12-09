@@ -9,6 +9,9 @@ from datetime import datetime
 
 from ._currencyhandler import BaseHandler
 
+if sys.version_info.major == 2:
+    FileNotFoundError = IOError
+
 
 class CurrencyHandler(BaseHandler):
     """
@@ -67,7 +70,7 @@ class CurrencyHandler(BaseHandler):
             resp = get(self.currencies_url)
             resp.raise_for_status()
         except exceptions.RequestException as e:
-            self.log(logging.ERROR, "%s: Problem whilst contacting endpoint:\n%s", self.name, e)
+            self.log(logging.ERROR, "%s Deprecated: API withdrawn in February 2018:\n%s", self.name, e)
         else:
             # Find the javascript that contains the json object
             soup = BS4(resp.text, 'html.parser')
@@ -86,8 +89,11 @@ class CurrencyHandler(BaseHandler):
                         fd.write(json_str.encode('utf-8'))
 
         # Parse the json file
-        with open(self._cached_currency_file, 'r') as fd:
-            j = json.load(fd)
+        try:
+            with open(self._cached_currency_file, 'r') as fd:
+                j = json.load(fd)
+        except FileNotFoundError:
+            j = None
         if not j:
             raise RuntimeError("%s: JSON not found at endpoint or as cached file:\n%s" % (
                 self.name, self._cached_currency_file))
@@ -215,6 +221,7 @@ class CurrencyHandler(BaseHandler):
         Return the Decimal currency exchange rate factor of 'code' compared to 1 'base' unit, or RuntimeError
         Yahoo currently uses USD as base currency, but here we detect it with get_baserate
         """
+        raise RuntimeError("%s Deprecated: API withdrawn in February 2018" % self.name)
         try:
             rate = self.get_rate(code)
         except RuntimeError:

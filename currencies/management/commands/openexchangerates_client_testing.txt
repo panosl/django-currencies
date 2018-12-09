@@ -1,5 +1,0 @@
-OpenExchangeRates Client testing:
-
-Requires HTTPretty: 'pip install HTTPretty'
-
-Run using: 'python -m unittest -v currencies.management.commands._openexchangerates_client_unittests'

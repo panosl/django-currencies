@@ -49,14 +49,12 @@ setup(
     license='BSD License',
 
     install_requires=[
-        'django>=1.4.2',
+        'django>=1.8',
         'jsonfield>=1.0.3',
-    ],    
-    #requires=[
-    #    'Django (>=1.4.2)',
-    #    'django-jsonfield (>=1.0.3)',
-    #],
-    
+        'requests>=2.14.2',
+        'bs4',
+    ],
+
     description='Adds support for multiple currencies as a Django application.',
     long_description=read('README.rst'),
 
@@ -72,17 +70,27 @@ setup(
     packages=find_packages(exclude=('example*', '*.tests*')),
     include_package_data=True,
 
+# Not used when running python setup.py develop or test? See .travis.yml
     tests_require=[
+        'httpretty',    # for openexchangerates client
+        'mock',         # for python 2.7 test mock
+        'codecov',      # for codecov.io
     ],
     cmdclass={
         'test': TestRunner,
     },
-    
+
     zip_safe=False,
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Django',
+        'Framework :: Django :: 1.8',
+        'Framework :: Django :: 1.9',
+        'Framework :: Django :: 1.10',
+        'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2.0',
+        'Framework :: Django :: 2.1',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
@@ -90,7 +98,9 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: Implementation :: PyPy3',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],

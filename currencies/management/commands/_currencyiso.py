@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-import os
+import sys, os
 import logging
 from xml.etree import ElementTree as ET
 from requests import get, exceptions
 from datetime import datetime
 
 from ._currencyhandler import BaseHandler
+
+if sys.version_info.major == 2:
+    FileNotFoundError = IOError
 
 
 class CurrencyHandler(BaseHandler):
@@ -15,7 +18,6 @@ class CurrencyHandler(BaseHandler):
     endpoint
     get_allcurrencycodes()
     get_currencyname(code)
-    get_currencysymbol(code)
     get_info(code)
     """
     name = 'currency-iso.org'

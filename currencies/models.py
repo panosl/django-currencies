@@ -18,12 +18,12 @@ class Currency(models.Model):
     symbol = models.CharField(_('symbol'), max_length=4, blank=True,
                             db_index=True)
     factor = models.DecimalField(_('factor'), max_digits=30, decimal_places=10, default=1.0,
-        help_text=_('Specifies the difference of the currency to default one.'))
+        help_text=_('Specifies the currency rate ratio to the base currency.'))
 
     is_active = models.BooleanField(_('active'), default=True,
         help_text=_('The currency will be available.'))
     is_base = models.BooleanField(_('base'), default=False,
-        help_text=_('Make this the base currency against which rates are calculated.'))
+        help_text=_('Make this the base currency against which rate factors are calculated.'))
     is_default = models.BooleanField(_('default'), default=False,
         help_text=_('Make this the default user currency.'))
 
