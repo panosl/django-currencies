@@ -63,14 +63,7 @@ Installation
            url(r'^currencies/', include('currencies.urls')),
        )
 
-Then run ``./manage.py syncdb`` to create the required database tables
-
-Please see ``example`` application. This application is used to
-manually test the functionalities of this package. This also serves as
-a good example.
-
-You need Django 1.4 or above to run that. It might run on older
-versions but that is not tested.
+Then run ``./manage.py migrate`` to create the required database tables
 
 Upgrading from 0.3.3
 ~~~~~~~~~~~~~~~~~~~~

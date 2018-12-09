@@ -19,5 +19,5 @@ def currencies(request):
     return {
         'CURRENCIES': Currency.active.all(),  # get all active currencies
         'CURRENCY_CODE': request.session[SESSION_KEY],
-        'CURRENCY': currency,  # for a backward compatibility
+        'CURRENCY': currency,  # for backward compatibility
     }
