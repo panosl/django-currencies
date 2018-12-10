@@ -11,14 +11,14 @@ env:
   - DJANGO_VERSION=2.0
   - DJANGO_VERSION=2.1
 before_install:
-  - pip install httpretty mock codecov
+  - pip install httpretty mock coverage codecov
   - pip install -q django==$DJANGO_VERSION
 install:
   - python setup.py develop
 script:
-  - python setup.py test
+  - coverage run setup.py test
 after_success:
-  - codecov -e DJANGO_VERSION
+  - codecov --env DJANGO_VERSION
 matrix:
   exclude:
     - python: "3.6"
