@@ -16,7 +16,7 @@ before_install:
 install:
   - python setup.py develop
 script:
-  - coverage run setup.py test
+  - coverage run --source='.' setup.py test
 after_success:
   - codecov --env DJANGO_VERSION
 matrix:
