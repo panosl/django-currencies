@@ -3,8 +3,8 @@ django-currencies
 
 .. image:: https://travis-ci.org/panosl/django-currencies.svg?branch=master
     :target: https://travis-ci.org/panosl/django-currencies
-.. image:: https://codecov.io/gh/racitup/django-currencies/branch/tests-other/graph/badge.svg
-    :target: https://codecov.io/gh/racitup/django-currencies
+.. image:: https://codecov.io/gh/panosl/django-currencies/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/panosl/django-currencies
 
 
 django-currencies allows you to define different currencies, and
