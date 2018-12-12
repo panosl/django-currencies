@@ -66,9 +66,6 @@ setup(
     author='Panos Laganakos',
     author_email='panos.laganakos@gmail.com',
 
-    maintainer='Basil Shubin',
-    maintainer_email='basil.shubin@gmail.com',
-
     url='https://github.com/panosl/django-currencies',
     download_url='https://github.com/panosl/django-currencies/zipball/master',
 
