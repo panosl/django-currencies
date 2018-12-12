@@ -46,7 +46,8 @@ def mock_requestget_response(filename):
         _content = fp.read()
     def mock_resp_json(*args, **kwargs):
         import json
-        return json.loads(_content.decode(), *args, **kwargs)
+        # Supply a default encoding for python 2.7
+        return json.loads(_content.decode('utf-8'), *args, **kwargs)
     mockget = MagicMock()
     resp = mockget.return_value
     resp.raise_for_status.return_value = None
