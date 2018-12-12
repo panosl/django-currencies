@@ -14,7 +14,12 @@ class TestRunner(TestCommand):
     user_options = []
 
     def run(self):
-        raise SystemExit(subprocess.call([sys.executable, 'runtests.py']))
+        exe = ['coverage', 'run', '--source=currencies']
+        try:
+            import coverage
+        except ImportError:
+            exe = [sys.executable]
+        raise SystemExit(subprocess.call(exe + ['runtests.py']))
 
 
 # When creating the sdist, make sure the django.mo file also exists:
@@ -74,6 +79,7 @@ setup(
     tests_require=[
         'httpretty',    # for openexchangerates client
         'mock',         # for python 2.7 test mock
+        'coverage',     # for code coverage report output
         'codecov',      # for codecov.io
     ],
     cmdclass={
