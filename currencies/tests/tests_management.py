@@ -37,29 +37,33 @@ def fromisoformat(s):
     return datetime(*map(int, re.findall('\d+', s)))
 
 
+
+# Mock get requests instead of hammering the API's
+def mock_requestget_response(filename):
+    "Returns a mock get response with the contents of a file"
+    # Cache the file content to guard against reading from & writing to the same file
+    with open(filename, 'rb') as fp:
+        _content = fp.read()
+    def mock_resp_json(*args, **kwargs):
+        import json
+        return json.loads(_content.decode(), *args, **kwargs)
+    mockget = MagicMock()
+    resp = mockget.return_value
+    resp.raise_for_status.return_value = None
+    resp.json.side_effect = mock_resp_json
+    resp.content = _content
+    return mockget
+
 # Mock helper function for oxr rates support without a valid API key for testing
 def mock_requestsession_getjson(filename):
     "Sets up the mock session instance to return a fixed json rates file"
-    def mock_resp_json(*args, **kwargs):
-        import json
-        with open(filename, 'r') as fp:
-            return json.load(fp, *args, **kwargs)
     mocksess = MagicMock()
     sessInst = mocksess.return_value
-    resp = sessInst.get.return_value
-    resp.raise_for_status.return_value = None
-    resp.json.side_effect = mock_resp_json
+    sessInst.get = mock_requestget_response(filename)
     return mocksess
+
 
 # Mock request exception helpers for simulating connectivity problems
-def mock_requestsession_getexception():
-    "Sets up the mock session instance to raise a Request exception"
-    from requests.exceptions import RequestException
-    mocksess = MagicMock()
-    sessInst = mocksess.return_value
-    sessInst.get.side_effect = RequestException('Mocked Exception')
-    return mocksess
-
 def mock_requestget_exception():
     "Sets up the mock get instance to raise a Request exception"
     from requests.exceptions import RequestException
@@ -67,8 +71,22 @@ def mock_requestget_exception():
     mockget.side_effect = RequestException('Mocked Exception')
     return mockget
 
+def mock_requestsession_getexception():
+    "Sets up the mock session instance to raise a Request exception"
+    mocksess = MagicMock()
+    sessInst = mocksess.return_value
+    sessInst.get = mock_requestget_exception()
+    return mocksess
 
 
+# Mock the source APIs for the main tests for speed and to prevent hammering & DoS protection
+# We don't mock yahoo because it's already down
+@patch('currencies.management.commands._currencyiso.get',
+    mock_requestget_response(
+        os.path.join(os.path.dirname(cwd), 'management', 'commands', '_currencyiso.xml')))
+@patch('currencies.management.commands._openexchangerates_client.requests.Session',
+    mock_requestsession_getjson(
+        os.path.join(os.path.dirname(cwd), 'management', 'commands', '_openexchangerates.json')))
 class BaseTestMixin(object):
     """
     Test suite for minimal source functionality:
@@ -283,7 +301,7 @@ class BaseTestMixin(object):
     @_verify_new_currencies
     def test_import_single_currency_short(self):
         "Currencies: Short import syntax"
-        self.run_cmd_verify_stdout(2, 'currencies', '-i=' + self._code_2dp)
+        self.default_currency_cmd()
 
     @_verify_new_symbols
     @_verify_new_names
@@ -327,17 +345,11 @@ class BaseTestMixin(object):
 
     ## NEGATIVE Tests ##
     # This test is overridden in IncCacheMixin
-    @patch('currencies.management.commands._openexchangerates_client.requests.Session',
-        mock_requestsession_getexception())
     def test_no_connectivity(self):
         "Currencies: Simulate connection problem"
-        self.assertRaises(Exception, self.default_currency_cmd)
-
-    @patch('currencies.management.commands._openexchangerates_client.OpenExchangeRatesClient.ENDPOINT_CURRENCIES',
-        'http://www.google.com/test.json')
-    def test_import_source_down(self):
-        "Currencies: Simulate source down"
-        self.assertRaises(Exception, self.default_currency_cmd)
+        with patch('currencies.management.commands._openexchangerates_client.requests.Session',
+            mock_requestsession_getexception()):
+            self.assertRaises(Exception, self.default_currency_cmd)
 
     def test_import_invalid_variable(self):
         "Currencies: Invalid import options"
@@ -392,13 +404,13 @@ class IncCacheMixin(object):
     @patch('currencies.management.commands._yahoofinance.get', mock_requestget_exception())
     def test_no_connectivity(self):
         "Currencies: Simulate connection problem - imports from cache"
-        self.test_import_single_currency_short()
+        self.default_currency_cmd()
 
     @_move_cache_file('currencies.management.commands._currencyiso')
     @_move_cache_file('currencies.management.commands._yahoofinance')
     def test_no_cache(self):
         "Currencies: Simulate no cache file - imports from API"
-        self.test_import_single_currency_short()
+        self.default_currency_cmd()
 
     @_move_cache_file('currencies.management.commands._currencyiso')
     @_move_cache_file('currencies.management.commands._yahoofinance')
@@ -406,7 +418,7 @@ class IncCacheMixin(object):
     @patch('currencies.management.commands._yahoofinance.get', mock_requestget_exception())
     def test_no_connectivity_or_cache(self):
         "Currencies: Simulate connection problem & no cache - exception"
-        self.assertRaises(RuntimeError, self.test_import_single_currency_short)
+        self.assertRaises(RuntimeError, self.default_currency_cmd)
 
     # Strange fix for externally referenced python 2.7 decorator methods
     if sys.version_info.major == 2:
@@ -434,7 +446,7 @@ class IncInfoMixin(object):
 
 
 @patch('currencies.management.commands._openexchangerates_client.requests.Session',
-    mock_requestsession_getjson('%s/oxr_USD.json' % cwd))
+    mock_requestsession_getjson(os.path.join(cwd, 'oxr_USD.json')))
 class IncRatesMixin(object):
     "For sources that support exchange rates"
 
@@ -571,7 +583,7 @@ class YahooTest(IncInfoMixin, IncCacheMixin, BaseTestMixin, TestCase):
     @IncCacheMixin._move_cache_file('currencies.management.commands._yahoofinance')
     def test_no_cache(self):
         "Currencies: Simulate no cache file - API withdrawn so will raise exception"
-        self.assertRaises(RuntimeError, self.test_import_single_currency_short)
+        self.assertRaises(RuntimeError, self.default_currency_cmd)
 
 
 class ISOTest(IncInfoMixin, IncCacheMixin, BaseTestMixin, TestCase):
