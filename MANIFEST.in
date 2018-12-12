@@ -1,5 +1,7 @@
 include LICENSE
 include README.rst
 recursive-include currencies/locale *
-recursive-include currencies/management *.json *.xml *.txt
+recursive-include currencies/management *.json *.xml
+recursive-include currencies/fixtures *.json
+recursive-include currencies/tests *.json *.xml *.txt *.html
 recursive-include currencies/templates *.html
