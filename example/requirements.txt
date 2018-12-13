@@ -1,3 +1,0 @@
-django
-openexchangerates
-django-classy-tags
