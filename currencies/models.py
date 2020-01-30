@@ -13,7 +13,7 @@ class Currency(models.Model):
 
     code = models.CharField(_('code'), max_length=3,
                             primary_key=True)
-    name = models.CharField(_('name'), max_length=35,
+    name = models.CharField(_('name'), max_length=55,
                             db_index=True)
     symbol = models.CharField(_('symbol'), max_length=4, blank=True,
                             db_index=True)
