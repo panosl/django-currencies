@@ -15,7 +15,7 @@ from django import template
 from django.test import TestCase, override_settings
 from django.core.management import call_command
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.six import StringIO
+from six import StringIO
 from currencies.models import Currency
 from currencies.utils import calculate
 
