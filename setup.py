@@ -55,7 +55,7 @@ setup(
 
     install_requires=[
         'django>=1.8',
-        'jsonfield>=1.0.3',
+        'jsonfield>=1.0.3,<3.0.0',
         'requests>=2.14.2',
         'bs4',
     ],
@@ -94,6 +94,7 @@ setup(
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
         'Framework :: Django :: 2.1',
+        'Framework :: Django :: 3.0',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
