@@ -24,7 +24,7 @@ Installation
 
        pip install django-currencies
 
-2. You'll need to add ``currencies`` to ``INSTALLED_APPS`` in your project's settings file:
+#. You'll need to add ``currencies`` to ``INSTALLED_APPS`` in your project's settings file:
 
    .. code-block:: python
 
@@ -39,7 +39,7 @@ Installation
                'south',
            )
 
-3a. Either have the ``currencies.context_processors.currencies`` processor:
+#. Either have the ``currencies.context_processors.currencies`` processor:
 
    .. code-block:: python
 
@@ -48,14 +48,15 @@ Installation
            'currencies.context_processors.currencies',
        )
 
-3b. Or use the template tag ``currency_context``:
 
-   .. code-block:: html+django
+#. Or use the template tag ``currency_context``:
 
-       {% load currency %}
-       {% currency_context %}
+       .. code-block:: html+django
 
-4. Update your ``urls.py`` file :
+           {% load currency %}
+           {% currency_context %}
+
+#. Update your ``urls.py`` file :
 
    .. code-block:: python
 
@@ -129,7 +130,7 @@ You will need to specify your API key in your settings file:
 
     OPENEXCHANGERATES_APP_ID = "c2b2efcb306e075d9c2f2d0b614119ea"
 
-Requirements: `requests <http://docs.python-requests.org/en/master/>`_
+Requirements: `requests <http://docs.python-requests.org/en/master/>`__
 (python3-compatible fork of `OpenExchangeRatesClient <https://github.com/metglobal/openexchangerates>`_
 is integrated due to abandoned project)
 
@@ -143,13 +144,13 @@ is integrated due to abandoned project)
 Select this source by specifying ``yahoo`` as positional argument.
 
 Requirements: `BeautifulSoup4 <https://www.crummy.com/software/BeautifulSoup/bs4/doc/>`_
-and `requests <http://docs.python-requests.org/en/master/>`_
+and `requests <http://docs.python-requests.org/en/master/>`__
 
 **Currency ISO**
 
 Select this source by specifying ``iso`` as positional argument.
 
-Requirements: `requests <http://docs.python-requests.org/en/master/>`_
+Requirements: `requests <http://docs.python-requests.org/en/master/>`__
 
 ===========  ==========  =============  ==========  ==========
 Integration                    Live Feeds
