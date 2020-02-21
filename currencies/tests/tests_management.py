@@ -19,7 +19,7 @@ from django.test import TestCase, override_settings
 from django.core.management import call_command
 from django.core.exceptions import ImproperlyConfigured
 
-if django.get_version >= '3.0.0':
+if django.get_version() >= '3.0.0':
      from six import StringIO
 else:
     from django.utils.six import StringIO
