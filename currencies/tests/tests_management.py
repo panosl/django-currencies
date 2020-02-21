@@ -7,23 +7,17 @@ import re, os, sys
 from decimal import Decimal
 from datetime import datetime, timedelta
 from functools import wraps
+from six import StringIO
 
 if sys.version_info.major >= 3:
     from unittest.mock import patch, MagicMock
 else:
     from mock import patch, MagicMock
 
-import django
 from django import template
 from django.test import TestCase, override_settings
 from django.core.management import call_command
 from django.core.exceptions import ImproperlyConfigured
-
-if django.get_version() >= '3.0.0':
-     from six import StringIO
-else:
-    from django.utils.six import StringIO
-
 from currencies.models import Currency
 from currencies.utils import calculate
 
