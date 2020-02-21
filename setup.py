@@ -47,9 +47,6 @@ def find_version(*parts):
         return str(version_match.group(1))
     raise RuntimeError("Unable to find version string.")
 
-with open('README.rst', 'r', encoding='utf-8') as fh:
-    long_description = fh.read()
-
 setup(
     name='django-currencies',
     version=find_version('currencies', '__init__.py'),
@@ -64,7 +61,7 @@ setup(
 
     description='Adds support for multiple currencies as a Django application.',
     long_description_content_type='text/x-rst',
-    long_description=long_description,
+    long_description=read('README.rst'),
 
     author='Panos Laganakos',
     author_email='panos.laganakos@gmail.com',
