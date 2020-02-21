@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import django
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.utils.encoding import python_2_unicode_compatible
 from jsonfield.fields import JSONField
+
+if django.get_version >= '3.0.0':
+    from six import python_2_unicode_compatible
+else:
+    from django.utils.encoding import python_2_unicode_compatible
 
 from .managers import CurrencyManager
 
