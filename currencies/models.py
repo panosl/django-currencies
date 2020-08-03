@@ -4,6 +4,7 @@ from six import python_2_unicode_compatible
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from jsonfield.fields import JSONField
+from django.core.cache import cache
 
 from .managers import CurrencyManager
 
@@ -52,5 +53,8 @@ class Currency(models.Model):
         # Make sure default / base currency is active
         if self.is_default or self.is_base:
             self.is_active = True
+
+        cache_key = 'django-currencies-active'
+        cache.delete(cache_key)
 
         super(Currency, self).save(**kwargs)
