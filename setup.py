@@ -54,7 +54,7 @@ setup(
 
     install_requires=[
         'django>=1.8',
-        'jsonfield>=1.0.3,<3.0.0',
+        'jsonfield>=1.0.3,<=3.1.0',
         'requests>=2.14.2',
         'bs4',
     ],
