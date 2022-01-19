@@ -53,10 +53,9 @@ setup(
     license='BSD License',
 
     install_requires=[
-        'django>=1.8',
-        'jsonfield>=1.0.3,<3.0.0',
+        'django>=3.1',
         'requests>=2.14.2',
-        'bs4',
+        'beautifulsoup4',
     ],
 
     description='Adds support for multiple currencies as a Django application.',
@@ -75,7 +74,6 @@ setup(
 # Not used when running python setup.py develop or test? See .travis.yml
     tests_require=[
         'httpretty',    # for openexchangerates client
-        'mock',         # for python 2.7 test mock
         'coverage',     # for code coverage report output
         'codecov',      # for codecov.io
     ],
@@ -88,20 +86,16 @@ setup(
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Django',
-        'Framework :: Django :: 1.11',
-        'Framework :: Django :: 2.0',
-        'Framework :: Django :: 2.1',
-        'Framework :: Django :: 3.0',
+        'Framework :: Django :: 3.1',
+        'Framework :: Django :: 3.2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: PyPy',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
