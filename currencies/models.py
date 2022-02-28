@@ -27,8 +27,7 @@ class Currency(models.Model):
         help_text=_('Make this the default user currency.'))
 
     # Used to store other available information about a currency
-    info = models.JSONField(blank=True, default={})
-
+    info = models.JSONField(blank=True, default=dict)
     objects = models.Manager()
     active = CurrencyManager()
 
