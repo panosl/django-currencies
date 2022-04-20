@@ -20,14 +20,11 @@ APP_ID = get_open_exchange_rates_app_id()
 class Command(BaseCommand):
     help = "Gets / updates exchange rates against the base currency for a specific date."
 
-    option_list = BaseCommand.option_list + (
-        make_option('--force', '-f', action='store_true', default=False,
-                    help='Import daily rates even if already in database.'
-                    ),
-        make_option('--date', '-d', default=False,
-                    help='Import daily rates even if already in database.',
-                    ),
-    )
+    def add_arguments(self, parser):
+        parser.add_argument('--force', '-f', action='store_true', default=False,
+                    help='Import daily rates even if already in database.')
+        parser.add_argument('--date', '-d', default=False,
+                    help='Date to import')
 
     def handle(self, *args, **options):
         self.verbose = int(options.get('verbosity', 0))

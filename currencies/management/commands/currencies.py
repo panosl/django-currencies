@@ -22,14 +22,12 @@ class Command(BaseCommand):
 
     file_path = os.path.join(os.path.dirname(__file__), 'currencies.json')
 
-    option_list = BaseCommand.option_list + (
-        make_option('--force', '-f', action='store_true', default=False,
-            help='Import even if currencies are up-to-date.'
-        ),
-        make_option('--import', '-i', action='append', default=[],
-            help='Selectively import currencies (e.g. USD). Default is to process all. Can be used multiple times',
-        ),
-    )
+    def add_arguments(self, parser):
+        parser.add_argument('--force', '-f', action='store_true', default=False,
+                            help='Import even if currencies are up-to-date.')
+        parser.add_argument('--import', '-i', action='append', default=[],
+                            help='Selectively import currencies (e.g. USD). '
+                                 'Default is to process all. Can be used multiple times',)
 
     def handle(self, *args, **options):
         self.verbose = int(options.get('verbosity', 0))
