@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django import VERSION
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 
@@ -12,9 +12,9 @@ from .conf import SESSION_KEY
 def _is_safe_url(url, allowed_hosts, **kwargs):
     if VERSION < (1, 11, 0):
         host = allowed_hosts[0]
-        return is_safe_url(url, host=host)
+        return url_has_allowed_host_and_scheme(url, host=host)
     else:
-        return is_safe_url(url, allowed_hosts=allowed_hosts, **kwargs)
+        return url_has_allowed_host_and_scheme(url, allowed_hosts=allowed_hosts, **kwargs)
 
 
 @never_cache
