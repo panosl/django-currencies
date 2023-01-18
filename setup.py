@@ -44,7 +44,7 @@ def find_version(*parts):
 
 
 setup(
-    name='django-currencies',
+    name='singular-django-currencies',
     version=find_version('currencies', '__init__.py'),
     license='BSD License',
 
